@@ -1,0 +1,8 @@
+tags:
+  unverified:
+    # Golden cases whose expected values come from the engine's own
+    # calculation and have not yet been compared against the official
+    # BMF/BA calculators (checklist: VERIFY.md). The tag is removed once
+    # the comparison is confirmed. Run/exclude with:
+    #   dart test --tags unverified
+    #   dart test --exclude-tags unverified

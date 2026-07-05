@@ -3,4 +3,162 @@
 Annahmen und Entscheidungen, die während der Entwicklung getroffen wurden,
 weil die Spezifikation sie nicht (oder nicht eindeutig) vorgibt.
 
+## A0 – Spezifikation lag zum Entwicklungsstart nicht vor (GELÖST am 2026-07-05)
+
+Die Engine-Entwicklung startete versehentlich im Spiel-Repository
+`Sozialbetrug` und wurde anschließend hierher (`exitkompass`) umgezogen.
+`docs/ExitKompass_Spezifikation_v1.md` und `CLAUDE.md` lagen zum Start
+in keinem der beiden Repositories vor; alle Parameter wurden deshalb
+direkt aus den offiziellen Rechtsquellen 2026 übernommen (Quellen je
+JSON-Block als `_quelle` dokumentiert) und per Web-Recherche verifiziert.
+
+**Auflösung nach Nachreichen der Spec (2026-07-05):**
+
+- `params_2026.json` wurde gegen die M2-Tabelle aus **Spec §5**
+  abgeglichen: **100 % Übereinstimmung** (BBG RV/AV 101.400 €, BBG KV/PV
+  69.750 €, KV 14,6 % + Ø-Zusatz 2,9 %, PV 3,6 % ±Kinderlogik, RV 18,6 %,
+  AV 2,6 %, Bezugsgröße 3.955 €/Monat, AN-Anteile hälftig,
+  PV-Kinderlosenzuschlag allein AN, Abfindungen SV-frei).
+- Die Fünftelregelungs-Formel aus `CLAUDE.md` ist identisch mit der
+  implementierten Formel des § 34 Abs. 1 EStG.
+- Die §147-Tabelle der Spec ist eine Teilmenge der implementierten
+  vollständigen Gesetzestabelle (inkl. Stufen 16→8 und 20→10 Monate).
+
+**Noch offen aus Spec §5 (M1):** Validierung gegen die offiziellen
+Testfälle des BMF-Programmablaufplans (PAP) 2026 als Golden-Master
+(„ohne diese Validierung kein Release"). Die PAP-PDFs waren über den
+Session-Proxy nicht abrufbar. **TODO vor Release.**
+
+## A1 – Parameterdatei 2026
+
+- **A1.1 GKV-Zusatzbeitrag:** Es wird der **durchschnittliche**
+  Zusatzbeitragssatz 2026 (2,9 %, BMG-Bekanntmachung) als Default verwendet.
+  Der tatsächliche Satz ist kassenindividuell; die API erlaubt einen
+  abweichenden Satz als Parameter (`healthAdditionalRate`).
+- **A1.2 § 39b Abs. 2 S. 7 EStG (StKl V/VI):** Die Grenzwerte 2026
+  (14.071 € / 34.939 € / 222.260 €) stammen aus Sekundärquellen zum
+  PAP 2026 (rechnercheck.de; BMF-PAP v. 12.11.2025 war über den
+  Session-Proxy nicht direkt abrufbar). Plausibilität: 34.939 = 69.878/2,
+  222.260 = 0,8 × 277.825. **TODO:** gegen den offiziellen PAP 2026 prüfen
+  (zusammen mit der PAP-Golden-Master-Validierung aus A0).
+- **A1.3 Entlastungsbetrag für Alleinerziehende (§ 24b EStG):** 4.260 €
+  (Stand seit 2023) – für 2026 keine Änderung bekannt. Wird nur für
+  Steuerklasse II verwendet. **TODO:** bestätigen.
+- **A1.4 Kindergeld:** 259 €/Monat ab 01.01.2026 (§ 66 EStG i. d. F.
+  Steuerfortentwicklungsgesetz). Wird von der Engine informativ mitgeführt,
+  geht aber in keine M1–M4-Berechnung ein.
+- **A1.5 Kirchensteuer:** Vereinfachung auf „8 % in BY/BW, 9 % sonst".
+  Kappungsregelungen der Länder und besonderes Kirchgeld sind nicht
+  abgebildet.
+- **A1.6 Keine `null`-Platzhalter nötig:** Alle Parameterwerte konnten aus
+  offiziellen bzw. verlässlichen Sekundärquellen belegt werden; ein Test
+  (`params_sync_test.dart`) schlägt fehl, falls künftig `null`-TODOs in der
+  Datei stehen, ohne dass sie hier gelistet sind.
+- **A1.7 JSON-Schlüssel deutsch:** Die Schlüssel in `params_2026.json`
+  bleiben deutsch (sie spiegeln die Begriffe der Rechtsquellen); das
+  Dart-Modell (`params.dart`) übersetzt auf englische Bezeichner.
+
+## A2 – M1 Einkommensteuer/Lohnsteuer
+
+- **A2.1 Vereinfachte Vorsorgepauschale:** M1 implementiert § 39b Abs. 2
+  S. 5 Nr. 3 EStG vereinfacht (Teilbeträge RV + KV + PV, jeweils auf volle
+  Euro aufgerundet; Mindestvorsorgepauschale 12 %, max. 1.900/3.000 €).
+  Nicht abgebildet: PKV-Basistarif-Bescheinigungen, Faktorverfahren,
+  Frei-/Hinzurechnungsbeträge, sonstige Bezüge/Einmalzahlungen im
+  Lohnsteuerabzug. Die Jahres-Lohnsteuer ist eine **Netto-Schätzung**,
+  keine zertifizierte PAP-Implementierung; Abweichungen zum
+  BMF-Rechner im niedrigen Euro-Bereich sind möglich.
+- **A2.2 Rundung:** zvE und Steuerbetrag werden auf volle Euro abgerundet
+  (§ 32a Abs. 1 EStG); Soli/KiSt auf volle Cent abgerundet (Bruchteile
+  eines Cents bleiben außer Ansatz). SV-Beiträge kaufmännisch auf Cent.
+- **A2.3 Splitting:** Steuerklasse III wird über den Splittingtarif auf das
+  eigene Brutto abgebildet (Alleinverdiener-Annahme); Einkommen des
+  Ehepartners ist kein Eingabeparameter von M1.
+- **A2.4 Kirchensteuer im LSt-Abzug:** Bemessungsgrundlage ist die fiktive
+  LSt mit Kinderfreibeträgen (§ 51a Abs. 2a EStG); Kappung und besonderes
+  Kirchgeld sind nicht abgebildet.
+
+## A3 – M2 Sozialversicherung
+
+- **A3.1 Personenkreis:** gesetzlich pflichtversicherter Arbeitnehmer.
+  Keine PKV, kein Midijob-Übergangsbereich (§ 20 Abs. 2a SGB IV), keine
+  Gleitzone, keine berufsständischen Versorgungswerke. (PKV-Behandlung
+  in der ALG-Phase: laut Spec §13 bewusst vereinfacht mit Hinweis-Flag –
+  betrifft die UI, nicht die Engine.)
+- **A3.2 Jahresbetrachtung:** Beiträge werden auf das Jahresbrutto mit
+  Jahres-BBGs gerechnet (keine Monatsabrechnung mit anteiligen BBGs bei
+  unterjährigen Verläufen).
+- **A3.3 PV-Kinderabschlag:** Eingaben sind `totalChildren` (jemals,
+  für den Kinderlosenzuschlag) und `childrenUnder25` (für die
+  Abschläge Kind 2–5). Die Altersprüfung der Kinder übernimmt der Aufrufer.
+
+## A4 – M3 Abfindung
+
+- **A4.1 Formel:** § 34 Abs. 1 EStG, identisch mit CLAUDE.md:
+  `ESt_ermäßigt = ESt(zvE_rest) + 5 × (ESt(zvE_rest + A/5) − ESt(zvE_rest))`.
+- **A4.2 Zusammenballung:** Die von Spec §5 (M3) geforderte **grobe**
+  Prüfung ist implementiert (`incomeBunchingGiven`: Abfindung + Einkünfte
+  im Jahr > entgangene Einnahmen) und optional in `severanceComparison`
+  verdrahtet (`fifthRuleApplicable`). Sie ist eine Heuristik, keine
+  rechtliche Würdigung; Grenzfälle muss die UI mit „prüfen
+  lassen"-Hinweis versehen.
+- **A4.3 Flag `refundOnlyViaTaxReturn`:** Seit VZ 2025 keine
+  Fünftelregelung mehr im Lohnsteuerabzug (Wachstumschancengesetz); das
+  Flag ist `true`, sobald eine Ersparnis > 0 existiert. Die von der Spec
+  geforderte Cashflow-Darstellung (erst zahlen, später erstatten) ist
+  Aufgabe des M5-Aggregators (Woche 3–4).
+- **A4.4 Sozialversicherung:** Echte Abfindungen sind beitragsfrei in der
+  SV; M3 rechnet daher nur die Steuer.
+
+## A5 – M4 ALG 1
+
+- **A5.1 Fiktive Lohnsteuer:** § 153 SGB III verlangt die Lohnsteuer nach
+  dem BMF-Programmablaufplan „im Jahresdurchschnitt". M4 verwendet die
+  vereinfachte M1-Jahreslohnsteuer auf das (gedeckelte) Bemessungsentgelt;
+  kleine Abweichungen zum BA-Rechner sind möglich. Kirchensteuer wird –
+  wie im geltenden Recht – **nicht** abgezogen, Soli mit
+  Kinderfreibeträgen (§ 51a) schon.
+- **A5.2 Rundung:** Tageswerte werden durch Ganzzahldivision (÷365)
+  abgerundet, der Tagessatz ebenfalls; Monatsbetrag = 30 Tagessätze
+  (§ 154 SGB III). Die BA rundet teils anders (2 Nachkommastellen je
+  Rechenschritt); Abweichungen im Cent-Bereich sind möglich.
+- **A5.3 Sperrzeit-Minderung:** § 148 Abs. 1 Nr. 4 SGB III – Minderung um
+  die Sperrzeittage, bei 12 Wochen mindestens ein Viertel der
+  Anspruchsdauer. Bei nicht durch 4 teilbaren Anspruchsdauern (450 Tage)
+  wird abgerundet (450/4 → 112 Tage). Verkürzte Sperrzeiten (3/6 Wochen,
+  § 159 Abs. 3 S. 2) sind nicht abgebildet.
+- **A5.4 Sperrzeit-Ausnahme-Heuristik (Spec §5, M4):**
+  `blockingPeriodUnlikely` bildet die BA-Geschäftsanweisung ab
+  (Aufhebungsvertrag wegen drohender **betriebsbedingter** Kündigung,
+  Abfindung ≤ 0,5 Bruttomonatsgehälter je Beschäftigungsjahr → i. d. R.
+  keine Sperrzeit). Nur Flag-Charakter; die UI muss immer den „prüfen
+  lassen"-Hinweis anzeigen. Die Untergrenze von 0,25 Monatsgehältern
+  (unterhalb derer die BA den wichtigen Grund gesondert prüft) ist
+  bewusst nicht abgebildet – die Spec nennt nur die 0,5-Obergrenze.
+- **A5.5 § 158-Ruhen:** Eingabe ist `missedNoticeDays`
+  (Differenz tatsächliches Ende ↔ fiktives Ende der ordentlichen
+  Kündigungsfrist); die Bestimmung der maßgeblichen Kündigungsfrist
+  (inkl. Sonderfälle unkündbarer Arbeitsverhältnisse, § 158 Abs. 1
+  S. 3–4) übernimmt der Aufrufer. Während des Ruhens bleibt die
+  Anspruchsdauer erhalten (kein § 148-Verbrauch); Ruhen und Sperrzeit
+  laufen parallel, die Engine addiert sie nicht automatisch.
+- **A5.6 Anspruchsdauer:** Die Tabelle setzt Versicherungsmonate in der
+  auf 5 Jahre erweiterten Rahmenfrist voraus (Eingabe des Aufrufers);
+  Vordienstzeiten-Anrechnung nach § 147 Abs. 3/4 ist nicht abgebildet.
+
+## A6 – Sprach- und Historien-Migration (2026-07-05)
+
+Die Engine wurde ursprünglich mit deutschen Bezeichnern, Kommentaren und
+Commit-Messages gebaut (CLAUDE.md lag nicht vor). Nach Nachreichen der
+CLAUDE.md wurde gemäß deren Regel („Code, Kommentare, Commit-Messages:
+Englisch" + Conventional Commits) migriert:
+
+- Alle Identifier und Kommentare auf Englisch; **deutsche Rechtsbegriffe
+  ohne präzise Übersetzung bleiben als Fachbegriffe erhalten**
+  (`vorsorgepauschale`, `Bundesland`, „Fünftelregelung" in Doku).
+- Die Commit-Historie wurde als englische Conventional Commits neu
+  aufgebaut (Force-Push auf den Draft-PR); die 93 Tests sichern die
+  Verhaltensgleichheit (Golden-Pins unverändert).
+- JSON-Parameterschlüssel bleiben deutsch (A1.7).
+
 _(wird fortlaufend gepflegt)_
