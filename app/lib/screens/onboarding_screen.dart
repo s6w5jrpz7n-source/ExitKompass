@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'ratgeber_screen.dart';
 import 'wizard_screen.dart';
 
 /// Onboarding with the mandatory disclaimer acceptance (spec §4 screen 0,
@@ -19,11 +20,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
               const Spacer(),
               Icon(Icons.explore_outlined, size: 64, color: theme.colorScheme.primary),
               const SizedBox(height: 16),
@@ -68,8 +74,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
                 child: const Text('Szenarien berechnen'),
               ),
+              TextButton(
+                onPressed: _accepted
+                    ? () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(builder: (_) => const RatgeberScreen()),
+                        )
+                    : null,
+                child: const Text('Nur informieren – zum Ratgeber'),
+              ),
               const SizedBox(height: 8),
-            ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),

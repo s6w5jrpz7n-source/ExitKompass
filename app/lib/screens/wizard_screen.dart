@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 import '../state/wizard.dart';
 import '../util/labels.dart';
-import 'result_screen.dart';
+import 'home_shell.dart';
 
 /// Four-step wizard (spec §4 screens 2–5): situation, person & tax, job,
 /// offer. Inputs are stored in [wizardProvider].
@@ -33,7 +33,7 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
             setState(() => _step++);
           } else {
             Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const ResultScreen()),
+              MaterialPageRoute<void>(builder: (_) => const HomeShell()),
             );
           }
         },
@@ -235,6 +235,11 @@ class _OfferStep extends ConsumerWidget {
           onChanged: (v) => notifier.update((d) => d.copyWith(severanceGrossEuro: v)),
         ),
         const SizedBox(height: 12),
+        _DateField(
+          label: 'Zugang der Kündigung / des Angebots',
+          value: data.noticeDate,
+          onChanged: (v) => notifier.update((d) => d.copyWith(noticeDate: v)),
+        ),
         _DateField(
           label: 'Austrittsdatum laut Angebot',
           value: data.exitDate,

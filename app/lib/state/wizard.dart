@@ -28,11 +28,14 @@ class WizardData {
     this.paidRelease = false,
     this.settlementsEuro = 0,
     this.horizonMonths = 24,
+    DateTime? noticeDate,
   })  : entryDate = entryDate ?? _defaultEntry,
         regularEndDate = regularEndDate ?? _defaultExit,
-        exitDate = exitDate ?? _defaultExit;
+        exitDate = exitDate ?? _defaultExit,
+        noticeDate = noticeDate ?? _today;
 
   static final DateTime _defaultEntry = DateTime(2015, 1, 1);
+  static final DateTime _today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
   static final DateTime _defaultExit = DateTime(DateTime.now().year, DateTime.now().month + 3, 1);
 
   final Situation situation;
@@ -54,6 +57,10 @@ class WizardData {
   final int settlementsEuro;
   final int horizonMonths;
 
+  /// Date the written termination / offer was received (drives the
+  /// § 4 KSchG deadline in the timeline; not used by the engine).
+  final DateTime noticeDate;
+
   WizardData copyWith({
     Situation? situation,
     int? birthYear,
@@ -73,6 +80,7 @@ class WizardData {
     bool? paidRelease,
     int? settlementsEuro,
     int? horizonMonths,
+    DateTime? noticeDate,
   }) {
     return WizardData(
       situation: situation ?? this.situation,
@@ -94,6 +102,7 @@ class WizardData {
       paidRelease: paidRelease ?? this.paidRelease,
       settlementsEuro: settlementsEuro ?? this.settlementsEuro,
       horizonMonths: horizonMonths ?? this.horizonMonths,
+      noticeDate: noticeDate ?? this.noticeDate,
     );
   }
 

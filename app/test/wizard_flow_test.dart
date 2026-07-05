@@ -6,7 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:exitkompass_app/main.dart';
 import 'package:exitkompass_app/screens/wizard_screen.dart';
-import 'package:exitkompass_app/screens/result_screen.dart';
+import 'package:exitkompass_app/screens/home_shell.dart';
 
 void main() {
   testWidgets('onboarding gates the wizard behind the disclaimer checkbox',
@@ -52,9 +52,18 @@ void main() {
     await tester.tap(find.text('Szenarien vergleichen'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(ResultScreen), findsOneWidget);
+    expect(find.byType(HomeShell), findsOneWidget);
     expect(find.text('Bleiben'), findsWidgets);
     expect(find.text('Kündigung durch Arbeitgeber'), findsOneWidget);
+
+    // The Fristen and Ratgeber tabs are reachable.
+    await tester.tap(find.text('Fristen'));
+    await tester.pumpAndSettle();
+    expect(find.text('Deine Fristen'), findsOneWidget);
+
+    await tester.tap(find.text('Ratgeber'));
+    await tester.pumpAndSettle();
+    expect(find.text('Verhandlung'), findsWidgets);
   });
 
   test('default wizard data computes a full aggregate result', () {

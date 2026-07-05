@@ -6,22 +6,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/wizard.dart';
 import '../util/format.dart';
 import '../util/labels.dart';
-import '../widgets/disclaimer_footer.dart';
 import 'detail_screen.dart';
 
-/// Result screen (spec §4 screen 6): the four scenarios compared by their
+/// Comparison tab (spec §4 screen 6): the four scenarios compared by their
 /// cumulative net over the horizon, best option highlighted, deltas to the
 /// baseline, tap-through to the detail view.
-class ResultScreen extends ConsumerWidget {
-  const ResultScreen({super.key});
+class ComparisonTab extends ConsumerWidget {
+  const ComparisonTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final data = ref.watch(wizardProvider);
-    final result = data.compute();
+    final result = ref.watch(wizardProvider).compute();
     final theme = Theme.of(context);
 
-    // Fixed display order.
     const order = [
       ScenarioType.kuendigungAg,
       ScenarioType.aufhebungsvertrag,
@@ -30,36 +27,22 @@ class ResultScreen extends ConsumerWidget {
     ];
     final best = result.bestScenario;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Szenario-Vergleich')),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(
-                  'Kumulierte Netto-Summe über ${result.horizonMonths} Monate',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 220,
-                  child: _ComparisonChart(result: result, order: order, best: best),
-                ),
-                const SizedBox(height: 16),
-                for (final type in order)
-                  _ScenarioCard(
-                    result: result,
-                    type: type,
-                    isBest: type == best,
-                  ),
-              ],
-            ),
-          ),
-          const DisclaimerFooter(),
-        ],
-      ),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        Text(
+          'Kumulierte Netto-Summe über ${result.horizonMonths} Monate',
+          style: theme.textTheme.titleMedium,
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 220,
+          child: _ComparisonChart(result: result, order: order, best: best),
+        ),
+        const SizedBox(height: 16),
+        for (final type in order)
+          _ScenarioCard(result: result, type: type, isBest: type == best),
+      ],
     );
   }
 }
@@ -153,17 +136,14 @@ class _ScenarioCard extends StatelessWidget {
         title: Row(
           children: [
             Expanded(child: Text(scenarioLabel(type))),
-            if (isBest)
-              Icon(Icons.star, size: 18, color: theme.colorScheme.primary),
+            if (isBest) Icon(Icons.star, size: 18, color: theme.colorScheme.primary),
           ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              euroFromCents(scenario.cumulativeNetCents),
-              style: theme.textTheme.titleMedium,
-            ),
+            Text(euroFromCents(scenario.cumulativeNetCents),
+                style: theme.textTheme.titleMedium),
             if (type != ScenarioType.bleiben)
               Text(
                 '${signedEuroFromCents(delta)} gegenüber „Bleiben"',

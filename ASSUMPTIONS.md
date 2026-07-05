@@ -194,6 +194,36 @@ damit die Engine ohne Kalender-/UI-Abhängigkeit testbar bleibt:
   Bausteine M1–M4 (gegen BMF/BA verifiziert, VERIFY.md); der Aggregator
   komponiert diese nur monatsweise.
 
+## A8 – Ratgeber & Fristen (Content, RDG/StBerG-Leitlinie)
+
+Die App enthält neben dem Rechner einen Ratgeber-Bereich und eine
+Fristen-Timeline. Rechtssicherheits-Leitlinie (RDG/StBerG), damit dies
+**allgemeine Rechtsinformation** bleibt und keine unerlaubte
+Rechts-/Steuerberatung im Einzelfall wird:
+
+- **A8.1 Allgemein statt fallbezogen:** Ratgeber-Artikel sind abstrakt
+  formuliert und reagieren **nicht** mit einer rechtlichen
+  Handlungsempfehlung auf die konkreten Nutzereingaben. Jeder Artikel
+  trägt seine Rechtsgrundlagen (§) und ein Stand-Datum
+  (`contentReviewedOn`) – auditierbar wie die Parameterdatei.
+- **A8.2 Keine Empfehlungssprache:** durchgehend Info-/„du"-Form, nie
+  „du solltest …". Engine-Flags und Timeline weisen auf Risiken/Fristen
+  hin („lass prüfen"), fällen aber kein rechtliches Urteil.
+- **A8.3 Timeline = Fakten:** Die Fristen-Timeline (§ 4 KSchG, § 38/§ 141
+  SGB III, KV, § 109 GewO) rechnet nur gesetzliche Fristen aus den
+  eingegebenen Daten aus; sie ist bewusst als Orientierung markiert und
+  verweist auf Agentur für Arbeit/Anwalt. Eingabe `noticeDate` (Zugang
+  der Kündigung) steuert die § 4-KSchG-Frist; die Bestimmung des exakten
+  Zugangs bleibt dem Nutzer überlassen.
+- **A8.4 Keine generierten Rechtsdokumente:** Ein Zahlen-Dossier (PDF,
+  später) ist zulässig; das Erstellen individueller Schriftsätze
+  (Klage, Gegenentwurf Aufhebungsvertrag) wird bewusst **nicht**
+  angeboten (wäre grenzwertig zur Rechtsdienstleistung).
+- **A8.5 Pflege:** Recht ändert sich – der Content ist versioniert
+  (`contentReviewedOn`) und muss wie die Jahresparameter regelmäßig
+  geprüft werden (Spec §9 Nr. 4). Ein Test (`content_test.dart`)
+  erzwingt Quellenangaben und Stand-Datum je Artikel.
+
 ## A6 – Sprach- und Historien-Migration (2026-07-05)
 
 Die Engine wurde ursprünglich mit deutschen Bezeichnern, Kommentaren und
