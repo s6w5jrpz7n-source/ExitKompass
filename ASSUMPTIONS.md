@@ -5,10 +5,11 @@ weil die Spezifikation sie nicht (oder nicht eindeutig) vorgibt.
 
 ## A0 – Fehlende Spezifikation (wichtigster Punkt)
 
+Die Engine-Entwicklung startete versehentlich im Spiel-Repository
+`Sozialbetrug` und wurde anschließend hierher (`exitkompass`) umgezogen.
 `docs/ExitKompass_Spezifikation_v1.md` und `CLAUDE.md` waren zum Start der
-Engine-Entwicklung **auf keinem Branch des Repositories vorhanden**. Das
-Repo enthielt ausschließlich das Browser-Spiel „Sozialbetrug /
-Staat-Stratege“. Konsequenzen:
+Engine-Entwicklung **in keinem der beiden Repositories vorhanden**.
+Konsequenzen:
 
 - Die Werte in `packages/exit_engine/assets/params_2026.json` konnten
   **nicht** gegen die M2-Tabelle aus Spec §5 abgeglichen werden. Stattdessen
