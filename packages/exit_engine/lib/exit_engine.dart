@@ -1,5 +1,11 @@
 /// ExitKompass calculation engine (tax year 2026).
 ///
+/// Modules:
+/// * M1 – income tax / wage tax (`m1_income_tax.dart`)
+/// * M2 – social insurance (`m2_social_insurance.dart`)
+/// * M3 – severance / Fünftelregelung (`m3_severance.dart`)
+/// * M4 – unemployment benefit ALG 1 (`m4_alg1.dart`)
+///
 /// All monetary amounts are passed and returned as `int` values in
 /// **cents** unless documented otherwise.
 library;
@@ -7,6 +13,7 @@ library;
 export 'src/m1_income_tax.dart';
 export 'src/m2_social_insurance.dart';
 export 'src/m3_severance.dart';
+export 'src/m4_alg1.dart';
 export 'src/money.dart';
 export 'src/net_income.dart';
 export 'src/params.dart';
