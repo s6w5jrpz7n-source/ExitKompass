@@ -60,14 +60,17 @@ Session-Proxy nicht abrufbar. **TODO vor Release.**
 
 ## A2 – M1 Einkommensteuer/Lohnsteuer
 
-- **A2.1 Vereinfachte Vorsorgepauschale:** M1 implementiert § 39b Abs. 2
-  S. 5 Nr. 3 EStG vereinfacht (Teilbeträge RV + KV + PV, jeweils auf volle
-  Euro aufgerundet; Mindestvorsorgepauschale 12 %, max. 1.900/3.000 €).
-  Nicht abgebildet: PKV-Basistarif-Bescheinigungen, Faktorverfahren,
-  Frei-/Hinzurechnungsbeträge, sonstige Bezüge/Einmalzahlungen im
-  Lohnsteuerabzug. Die Jahres-Lohnsteuer ist eine **Netto-Schätzung**,
-  keine zertifizierte PAP-Implementierung; Abweichungen zum
-  BMF-Rechner im niedrigen Euro-Bereich sind möglich.
+- **A2.1 Vorsorgepauschale (§ 39b Abs. 2 S. 5 Nr. 3 EStG):** Teilbeträge
+  RV + KV + PV, dabei KV mit dem **ermäßigten** Beitragssatz
+  (14,0 %/2 = 7,0 % + halber Zusatzbeitrag); die Summe wird **einmal**
+  auf volle Euro aufgerundet; Mindestvorsorgepauschale 12 %,
+  max. 1.900/3.000 € (StKl III). Diese Punkte wurden am 2026-07-05 gegen
+  den BMF-Rechner kalibriert und treffen ihn seither **exakt**
+  (G1/G2/G3/G5, siehe VERIFY.md). Weiterhin **nicht** abgebildet (für die
+  Zielgruppe der Spec i. d. R. irrelevant): PKV-Basistarif-Bescheinigungen,
+  Faktorverfahren, Frei-/Hinzurechnungsbeträge, sonstige
+  Bezüge/Einmalzahlungen. Das offizielle PAP-Golden-Master aus Spec §5
+  (M1) bleibt als zusätzliches Release-Gate offen (A0).
 - **A2.2 Rundung:** zvE und Steuerbetrag werden auf volle Euro abgerundet
   (§ 32a Abs. 1 EStG); Soli/KiSt auf volle Cent abgerundet (Bruchteile
   eines Cents bleiben außer Ansatz). SV-Beiträge kaufmännisch auf Cent.
@@ -76,7 +79,10 @@ Session-Proxy nicht abrufbar. **TODO vor Release.**
   Ehepartners ist kein Eingabeparameter von M1.
 - **A2.4 Kirchensteuer im LSt-Abzug:** Bemessungsgrundlage ist die fiktive
   LSt mit Kinderfreibeträgen (§ 51a Abs. 2a EStG); Kappung und besonderes
-  Kirchgeld sind nicht abgebildet.
+  Kirchgeld sind nicht abgebildet. In den **Steuerklassen V/VI** gibt es
+  keine Kinderfreibetragszähler (§ 38b Abs. 2 EStG), daher wird die
+  Kirchensteuer dort auf die volle Lohnsteuer berechnet (gegen den
+  BMF-Rechner bestätigt, G5).
 
 ## A3 – M2 Sozialversicherung
 

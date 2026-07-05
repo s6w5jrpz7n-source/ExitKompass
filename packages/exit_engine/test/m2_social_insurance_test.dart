@@ -112,8 +112,8 @@ void main() {
         taxClass: TaxClass.i,
         age: 30,
       );
-      // wage tax 9,328 (M1 test) + social insurance 13,050 (M2 test)
-      expect(net.netYearCents, eur(60000 - 9328 - 13050));
+      // wage tax 9,389 (M1 test) + social insurance 13,050 (M2 test)
+      expect(net.netYearCents, eur(60000 - 9389 - 13050));
       expect(net.netMonthCents, (net.netYearCents / 12).round());
     });
 

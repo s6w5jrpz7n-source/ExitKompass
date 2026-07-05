@@ -118,12 +118,19 @@ int churchTax({
 /// Simplified Vorsorgepauschale per § 39b Abs. 2 S. 5 Nr. 3 EStG, based
 /// on the annual gross wage.
 ///
-/// Partial amounts (each rounded up to full euros, as in the PAP):
+/// Partial amounts:
 /// * pension insurance: employee share of the gross wage up to the
 ///   pension/unemployment ceiling,
-/// * health/care insurance: employee shares up to the health/care
-///   ceiling, but at least the minimum allowance (12 % of the wage,
+/// * health insurance: half the **reduced** rate of § 243 SGB V
+///   (14.0 % / 2 = 7.0 %) plus half the additional rate — the PAP uses
+///   the reduced rate here, not the general 14.6 % rate (verified
+///   against the BMF calculator 2026),
+/// * care insurance employee share,
+/// * health + care at least the minimum allowance (12 % of the wage,
 ///   capped at 1,900 € / 3,000 € in tax class III).
+///
+/// The sum is rounded up to full euros **once** (PAP convention; also
+/// verified against the BMF calculator).
 int vorsorgepauschale({
   required int grossYearCents,
   required TaxClass taxClass,
@@ -139,10 +146,15 @@ int vorsorgepauschale({
   final pensionBase = min(grossYearCents, sv.ceilingPensionUnempYearCents);
   final healthBase = min(grossYearCents, sv.ceilingHealthCareYearCents);
 
-  final pensionPart = rateCeilToEuro(pensionBase, sv.pensionEmployeeRate);
-  final healthPart = rateCeilToEuro(healthBase,
-      healthInsuranceEmployeeRate(sv: sv, additionalRate: healthAdditionalRate));
-  final carePart = rateCeilToEuro(
+  // Exact scaled-integer arithmetic (cents × 1e6) so that the single
+  // final round-up is applied to the exact sum.
+  int scaled(int cents, double rate) => cents * (rate * 1000000).round();
+
+  final healthRate = sv.healthReducedRate / 2 +
+      (healthAdditionalRate ?? sv.healthAvgAdditionalRate) / 2;
+  final pensionPart = scaled(pensionBase, sv.pensionEmployeeRate);
+  final healthPart = scaled(healthBase, healthRate);
+  final carePart = scaled(
       healthBase,
       careInsuranceEmployeeRate(
         sv: sv,
@@ -155,10 +167,13 @@ int vorsorgepauschale({
   final minCap = taxClass == TaxClass.iii
       ? p.payroll.minHealthCareAllowanceCapClass3Cents
       : p.payroll.minHealthCareAllowanceCapCents;
-  final minHealthCare =
-      min(rateCeilToEuro(grossYearCents, p.payroll.minHealthCareAllowanceRate), minCap);
+  final minHealthCare = min(
+      scaled(grossYearCents, p.payroll.minHealthCareAllowanceRate),
+      minCap * 1000000);
 
-  return pensionPart + max(healthPart + carePart, minHealthCare);
+  final sum = pensionPart + max(healthPart + carePart, minHealthCare);
+  const centsPerEuro = 100 * 1000000;
+  return ((sum + centsPerEuro - 1) ~/ centsPerEuro) * 100;
 }
 
 /// Result of the annual wage tax calculation (all amounts in cents).
@@ -206,7 +221,11 @@ class WageTaxResult {
 /// or the formula of § 39b Abs. 2 S. 7 EStG (V, VI).
 ///
 /// [childAllowanceFactor] only affects the solidarity surcharge and
-/// church tax (§ 51a Abs. 2a EStG), not the wage tax itself.
+/// church tax (§ 51a Abs. 2a EStG), not the wage tax itself. In tax
+/// classes V/VI it is ignored entirely: the wage tax card carries no
+/// child allowance counters there (§ 38b Abs. 2 EStG; verified against
+/// the BMF calculator, which assesses church tax in class V on the full
+/// wage tax).
 WageTaxResult annualWageTax({
   required int grossYearCents,
   required TaxClass taxClass,
@@ -245,9 +264,12 @@ WageTaxResult annualWageTax({
   final wageTax = _wageTaxOnTaxable(taxable, taxClass, p);
 
   // Surcharge taxes are based on the notional wage tax with child
-  // allowances deducted (§ 51a Abs. 2a EStG).
+  // allowances deducted (§ 51a Abs. 2a EStG). No child allowance
+  // counters exist in classes V/VI (§ 38b Abs. 2 EStG).
+  final effectiveChildFactor =
+      (taxClass == TaxClass.v || taxClass == TaxClass.vi) ? 0.0 : childAllowanceFactor;
   final allowance =
-      (childAllowanceFactor * p.children.allowancePerChildBothParentsCents).round();
+      (effectiveChildFactor * p.children.allowancePerChildBothParentsCents).round();
   final surchargeBase = allowance == 0
       ? wageTax
       : _wageTaxOnTaxable(max(0, taxable - allowance), taxClass, p);

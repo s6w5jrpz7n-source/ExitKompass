@@ -16,22 +16,21 @@ ALG 1 (M4). Reine Dart-Bibliothek ohne Flutter-Abhängigkeit.
 - Code und Kommentare sind Englisch; deutsche Rechtsbegriffe ohne
   präzise Übersetzung (Vorsorgepauschale, Fünftelregelung, Bundesland)
   bleiben als Fachbegriffe erhalten.
-- Vereinfachungen und offene Punkte: siehe [`ASSUMPTIONS.md`](../../ASSUMPTIONS.md);
+- Steuerwerte sind gegen den BMF-Rechner 2026 exakt abgeglichen (siehe `VERIFY.md`); Vereinfachungen und offene Punkte: siehe [`ASSUMPTIONS.md`](../../ASSUMPTIONS.md);
   manuelle Verifikation der Golden-Cases: [`VERIFY.md`](../../VERIFY.md).
 
 ```bash
 dart pub get
 dart analyze            # ohne Findings
-dart test               # 93 Tests
-dart test --exclude-tags unverified   # ohne die noch nicht extern
-                                      # verifizierten Golden-Cases
+dart test               # 99 Tests
+dart test test/golden # nur die Golden-Gesamtprofile
 ```
 
 ## M1 – Einkommensteuer / Lohnsteuer
 
 zvE → tarifliche Einkommensteuer (§ 32a EStG, Grund-/Splittingtarif),
 darauf Soli und Kirchensteuer; Jahres-Lohnsteuer je Steuerklasse I–VI mit
-vereinfachter Vorsorgepauschale als Netto-Schätzung.
+Vorsorgepauschale (KV mit ermäßigtem Satz); gegen den BMF-Rechner 2026 exakt kalibriert.
 
 ```dart
 import 'package:exit_engine/exit_engine.dart';

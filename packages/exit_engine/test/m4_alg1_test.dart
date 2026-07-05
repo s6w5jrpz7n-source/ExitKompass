@@ -14,13 +14,13 @@ void main() {
       expect(alg.assessedGrossYearCents, eur(60000));
       expect(alg.assessedGrossDayCents, 16438, reason: '60,000 € / 365 = 164.38 €');
       expect(alg.socialLumpYearCents, eur(12000), reason: '20 % social lump sum');
-      expect(alg.wageTaxYearCents, eur(9328), reason: 'notional wage tax as in M1');
+      expect(alg.wageTaxYearCents, eur(9389), reason: 'notional wage tax as in M1');
       expect(alg.soliYearCents, 0);
-      // benefit wage: (60,000 - 12,000 - 9,328) / 365 = 105.95 €/day
-      expect(alg.benefitBaseDayCents, 10595);
+      // benefit wage: (60,000 - 12,000 - 9,389) / 365 = 105.78 €/day
+      expect(alg.benefitBaseDayCents, 10578);
       expect(alg.benefitRate, 0.60);
-      expect(alg.benefitDayCents, 6357, reason: '60 % of 105.95 €');
-      expect(alg.benefitMonthCents, 190710, reason: '30 daily rates = 1,907.10 €/month');
+      expect(alg.benefitDayCents, 6346, reason: '60 % of 105.78 €');
+      expect(alg.benefitMonthCents, 190380, reason: '30 daily rates = 1,903.80 €/month');
     });
 
     test('130,000 € gross: assessment wage capped at the ceiling', () {
@@ -30,13 +30,13 @@ void main() {
         age: 40,
       );
       expect(alg.assessedGrossYearCents, eur(101400), reason: 'ceiling cap');
-      // wage tax on 101,400 € (class I): taxable 82,925 -> 23,692 €; soli 397.69 €
-      expect(alg.wageTaxYearCents, eur(23692));
-      expect(alg.soliYearCents, 39769);
-      // benefit wage = (101,400 - 20,280 - 23,692 - 397.69) / 365 = 156.24 €/day
-      expect(alg.benefitBaseDayCents, 15624);
-      expect(alg.benefitDayCents, 9374);
-      expect(alg.benefitMonthCents, 281220, reason: 'max ALG childless: 2,812.20 €/month');
+      // wage tax on 101,400 € (class I): 23,781 €; soli 408.28 €
+      expect(alg.wageTaxYearCents, eur(23781));
+      expect(alg.soliYearCents, 40828);
+      // benefit wage = (101,400 - 20,280 - 23,781 - 408.28) / 365 = 155.97 €/day
+      expect(alg.benefitBaseDayCents, 15597);
+      expect(alg.benefitDayCents, 9358);
+      expect(alg.benefitMonthCents, 280740, reason: 'max ALG childless: 2,807.40 €/month');
     });
 
     test('more gross above the ceiling no longer changes the benefit', () {

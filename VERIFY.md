@@ -1,11 +1,46 @@
 # VERIFY.md – Manuelle Verifikation der Golden-Cases
 
-Die Golden-Tests in `packages/exit_engine/test/golden/golden_test.dart` tragen das
-Tag `unverified`: Ihre Erwartungswerte stammen aus der Engine selbst und
-dienen bis zum Abgleich nur als Regressions-Pins. Diese Checkliste enthält
-die exakten Eingaben, um **5 Kernfälle** (G1, G2, G3, G5, G6) plus
-optional die ALG-Fälle (G7, G8) gegen die offiziellen Rechner zu prüfen.
-**Erst nach bestätigtem Abgleich werden die `unverified`-Tags entfernt.**
+## ✅ Status: verifiziert am 2026-07-05
+
+Der Abgleich gegen den **BMF-Lohn-/Einkommensteuerrechner** und den
+**ALG-Rechner der Bundesagentur für Arbeit** (Screenshots vom Nutzer)
+ist erfolgt. Ergebnis:
+
+| Fall | Größe | Engine | offizieller Rechner | Δ |
+|---|---|---|---|---|
+| G1 | Lohnsteuer 60 k/I | 9.389,00 € | BMF 9.389,00 € | **exakt** |
+| G1 | ALG/Monat | 1.903,80 € | BA 1.902,60 € | +1,20 € (0,06 %) |
+| G2 | Lohnsteuer 90 k/III | 12.310,00 € | BMF 12.310,00 € | **exakt** |
+| G2 | Kirchensteuer | 847,62 € | BMF 847,62 € | **exakt** |
+| G2 | ALG/Monat 67 % | 3.286,80 € | BA 3.296,70 € | −9,90 € (0,30 %) |
+| G3-Var. | Lohnsteuer 130 k/I+Ki | 35.969,00 € | BMF 35.969,00 € | **exakt** |
+| G3-Var. | Soli / KiSt | 1.858,66 / 3.237,21 € | BMF idem | **exakt** |
+| G3 | ALG/Monat (10.833 €/M) | 2.807,40 € | BA 2.810,10 € | −2,70 € (0,10 %) |
+| G5 | Lohnsteuer 45 k/V | 10.494,00 € | BMF 10.494,00 € | **exakt** |
+| G5 | Kirchensteuer (V, BY) | 839,52 € | BMF 839,52 € | **exakt** |
+| G6 | ESt zvE 55/67/115 k | 12.347 / 17.018 / 37.164 € | BMF idem | **exakt** |
+
+**Alle Steuerwerte treffen den BMF-Rechner exakt; alle ALG-Monatsbeträge
+liegen unter 0,3 % Abweichung** (Spec-§5-Ziel: ±2 %). Die
+`unverified`-Tags wurden entfernt; die BMF-Werte sind zusätzlich als
+feste Referenztests in `test/m1_income_tax_test.dart` verankert.
+
+### Dabei gefundener und behobener Fehler (fix in `m1`)
+
+Der erste Abgleich zeigte bei G1 eine Abweichung von 61 € (9.328 statt
+9.389 €). Ursachen in der Vorsorgepauschale:
+1. Der KV-Teilbetrag muss mit dem **ermäßigten** Beitragssatz gerechnet
+   werden (14,0 %/2 = 7,0 % statt 7,3 %), § 39b Abs. 2 S. 5 Nr. 3 EStG.
+2. Die Vorsorgepauschale wird **einmal als Summe** auf volle Euro
+   aufgerundet, nicht je Teilbetrag.
+Zusätzlich wird die Kirchensteuer in StKl V/VI auf die **volle**
+Lohnsteuer berechnet (dort gibt es keine Kinderfreibetragszähler).
+
+---
+
+Die folgende Checkliste (exakte Eingaben je Fall) bleibt zur
+**Nachvollziehbarkeit** erhalten – z. B. um nach einer Parameter-
+aktualisierung 2027 erneut abzugleichen.
 
 ## Rechner
 
@@ -28,10 +63,9 @@ optional die ALG-Fälle (G7, G8) gegen die offiziellen Rechner zu prüfen.
 | Freibetrag/Hinzurechnungsbetrag | 0 |
 | Bundesland | wie im Fall angegeben (Sachsen: nein) |
 
-Erwartete Toleranzen: **Lohnsteuer ± 10 €/Jahr** (vereinfachte
-Vorsorgepauschale, s. ASSUMPTIONS.md A2.1), Soli/KiSt entsprechend
-anteilig; **Einkommensteuer (G6) exakt**; **ALG ± 5 €/Monat**
-(Rundungskonventionen der BA, s. A5.2).
+Beobachtete Genauigkeit (Stand 2026-07-05): **Lohn-/Einkommensteuer
+exakt** deckungsgleich mit dem BMF-Rechner; **ALG < 0,3 %** Abweichung
+(Rundungskonventionen der BA, s. ASSUMPTIONS.md A5.2).
 
 ---
 

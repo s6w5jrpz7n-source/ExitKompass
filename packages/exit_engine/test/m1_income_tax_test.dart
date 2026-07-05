@@ -125,25 +125,28 @@ void main() {
 
   group('M1 – Vorsorgepauschale (simplified)', () {
     test('60,000 € gross, class I, childless: pension + health + care', () {
-      // pension 9.3 % = 5,580 | health (7.3+1.45) % = 5,250 | care (1.8+0.6) % = 1,440
+      // PAP uses the REDUCED health rate (14.0/2 = 7.0 %):
+      // pension 9.3 % = 5,580 | health (7.0+1.45) % = 5,070 | care (1.8+0.6) % = 1,440
+      // sum 12,090 € (already whole after the single round-up)
       final vp = vorsorgepauschale(
         grossYearCents: eur(60000),
         taxClass: TaxClass.i,
         age: 30,
       );
-      expect(vp, eur(5580 + 5250 + 1440));
+      expect(vp, eur(5580 + 5070 + 1440));
     });
 
     test('capped at both contribution ceilings (130,000 € gross)', () {
-      // pension: 9.3 % of 101,400 = 9,430.20 -> rounded up 9,431
-      // health: 8.75 % of 69,750 = 6,103.125 -> 6,104
+      // pension: 9.3 % of 101,400 = 9,430.20
+      // health: 8.45 % of 69,750 = 5,893.875
       // care: 2.4 % of 69,750 = 1,674
+      // sum 16,998.075 € -> single round-up to 16,999 €
       final vp = vorsorgepauschale(
         grossYearCents: eur(130000),
         taxClass: TaxClass.i,
         age: 40,
       );
-      expect(vp, eur(9431 + 6104 + 1674));
+      expect(vp, eur(16999));
       // More gross does not change anything anymore
       expect(
           vorsorgepauschale(grossYearCents: eur(200000), taxClass: TaxClass.i, age: 40),
@@ -166,15 +169,15 @@ void main() {
   });
 
   group('M1 – annual wage tax per tax class', () {
-    test('class I, 60,000 € gross, childless (hand-computed)', () {
+    test('class I, 60,000 € gross, childless (matches BMF calculator 2026)', () {
       final result = annualWageTax(
         grossYearCents: eur(60000),
         taxClass: TaxClass.i,
         age: 30,
       );
-      // taxable = 60,000 - 1,230 - 36 - 12,270 = 46,464
-      expect(result.taxableCents, eur(46464));
-      expect(result.wageTaxCents, eur(9328));
+      // taxable = 60,000 - 1,230 - 36 - 12,090 = 46,644
+      expect(result.taxableCents, eur(46644));
+      expect(result.wageTaxCents, eur(9389), reason: 'BMF: 9.389,00 €');
       expect(result.soliCents, 0, reason: 'wage tax below the 20,350 € exemption');
       expect(result.churchTaxCents, 0, reason: 'not a church member');
     });
@@ -192,17 +195,17 @@ void main() {
       expect(v, greaterThan(i));
     });
 
-    test('class V: formula of § 39b Abs. 2 S. 7 (hand-computed, 45,000 € gross)', () {
+    test('class V: formula of § 39b Abs. 2 S. 7 (matches BMF calculator 2026)', () {
       final result = annualWageTax(
         grossYearCents: eur(45000),
         taxClass: TaxClass.v,
         age: 30,
       );
-      // VP = 4,185 (pension) + 3,938 (health) + 1,080 (care) = 9,203
-      // taxable = 45,000 - 1,230 - 36 - 9,203 = 34,531
-      expect(result.taxableCents, eur(34531));
-      // 2*(T(43,163) - T(25,898)) = 2*(8,228 - 3,089) = 10,278 (cap not binding)
-      expect(result.wageTaxCents, eur(10278));
+      // VP = 4,185 (pension) + 3,802.5 (health 8.45 %) + 1,080 (care) = 9,067.5
+      //    -> single round-up 9,068
+      // taxable = 45,000 - 1,230 - 36 - 9,068 = 34,666
+      expect(result.taxableCents, eur(34666));
+      expect(result.wageTaxCents, eur(10334), reason: 'cap not binding at this level');
     });
 
     test('class V: 14 % minimum rate applies at low income', () {
@@ -251,6 +254,72 @@ void main() {
               'raise the wage tax');
       expect(withChildren.soliCents, lessThan(without.soliCents));
       expect(withChildren.churchTaxCents, lessThan(without.churchTaxCents));
+    });
+  });
+
+  // Reference values taken directly from the official BMF wage/income
+  // tax calculator for 2026 (bmf-steuerrechner.de), entered by the user
+  // on 2026-07-05. These pin the engine to the authoritative source.
+  group('M1 – BMF calculator 2026 reference cases (verified)', () {
+    test('90,000 €, class III, 1 child, church 9 % (NW): LSt 12.310,00, KiSt 847,62',
+        () {
+      final r = annualWageTax(
+        grossYearCents: eur(90000),
+        taxClass: TaxClass.iii,
+        age: 30,
+        childAllowanceFactor: 1,
+        totalChildren: 1,
+        childrenUnder25: 1,
+        churchMember: true,
+      );
+      expect(r.wageTaxCents, eur(12310));
+      expect(r.soliCents, 0);
+      expect(r.churchTaxCents, 84762);
+    });
+
+    test('130,000 €, class I, church 9 % (NW), PV without surcharge: '
+        'LSt 35.969,00, Soli 1.858,66, KiSt 3.237,21', () {
+      final r = annualWageTax(
+        grossYearCents: eur(130000),
+        taxClass: TaxClass.i,
+        age: 46,
+        totalChildren: 1, // PV: "ohne Zuschlag", but 0 child allowances
+        childrenUnder25: 0,
+        churchMember: true,
+      );
+      expect(r.wageTaxCents, eur(35969));
+      expect(r.soliCents, 185866);
+      expect(r.churchTaxCents, 323721);
+    });
+
+    test('45,000 €, class V, 2 children, church 8 % (BY): LSt 10.494,00, KiSt 839,52',
+        () {
+      final r = annualWageTax(
+        grossYearCents: eur(45000),
+        taxClass: TaxClass.v,
+        age: 46,
+        totalChildren: 2,
+        childrenUnder25: 2,
+        churchMember: true,
+        state: Bundesland.bayern,
+      );
+      expect(r.wageTaxCents, eur(10494));
+      expect(r.soliCents, 0);
+      expect(r.churchTaxCents, 83952, reason: 'class V: church tax on the full wage tax');
+    });
+  });
+
+  // Reference values from the official BMF income tax calculator 2026
+  // (§ 32a EStG tariff), used by the M3 severance comparison (G6).
+  group('M1 – BMF income tax tariff 2026 reference points (verified)', () {
+    test('zvE 55,000 → 12.347,00 €', () {
+      expect(incomeTax(taxableIncomeCents: eur(55000)), eur(12347));
+    });
+    test('zvE 67,000 → 17.018,00 €', () {
+      expect(incomeTax(taxableIncomeCents: eur(67000)), eur(17018));
+    });
+    test('zvE 115,000 → 37.164,00 €', () {
+      expect(incomeTax(taxableIncomeCents: eur(115000)), eur(37164));
     });
   });
 }

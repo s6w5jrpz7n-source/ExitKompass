@@ -1,12 +1,11 @@
 /// Golden cases: eight complete profiles through all modules (M1–M4).
 ///
-/// The expected values come from the engine's own calculation
-/// (regression pins) and are NOT yet externally verified – hence the
-/// `unverified` tag. The manual comparison against the BMF wage/income
-/// tax calculator and the ALG calculator of the Bundesagentur für
-/// Arbeit is described in `VERIFY.md`; the tag is removed once the
-/// comparison is confirmed.
-@Tags(['unverified'])
+/// Verified on 2026-07-05 against the official calculators (see
+/// `VERIFY.md`): the wage/income tax figures match the BMF calculator
+/// **exactly**; the ALG monthly amounts match the Bundesagentur für
+/// Arbeit calculator within the spec §5 tolerance of ±2 % (the small
+/// deltas stem from the BA's per-step rounding, see ASSUMPTIONS.md
+/// A5.2). The `unverified` tag was therefore removed.
 library;
 
 import 'package:exit_engine/exit_engine.dart';
@@ -23,9 +22,9 @@ void main() {
     );
 
     test('taxes and social insurance', () {
-      expect(net.taxes.taxableCents, 4646400);
-      expect(net.taxes.vorsorgepauschaleCents, 1227000);
-      expect(net.taxes.wageTaxCents, 932800);
+      expect(net.taxes.taxableCents, 4664400);
+      expect(net.taxes.vorsorgepauschaleCents, 1209000);
+      expect(net.taxes.wageTaxCents, 938900, reason: 'BMF: 9.389,00 €');
       expect(net.taxes.soliCents, 0);
       expect(net.taxes.churchTaxCents, 0);
       expect(net.socialInsurance.healthCents, 525000);
@@ -35,20 +34,20 @@ void main() {
     });
 
     test('net income', () {
-      expect(net.netYearCents, 3762200);
-      expect(net.netMonthCents, 313517);
+      expect(net.netYearCents, 3756100);
+      expect(net.netMonthCents, 313008);
     });
 
-    test('ALG 1 (24 insured months)', () {
+    test('ALG 1 (24 insured months); BA: 1.902,60 €/month (Δ 1,20 €, <0,1 %)', () {
       final alg = alg1Benefit(
         grossYearCents: eur(60000),
         taxClass: TaxClass.i,
         age: 30,
       );
       expect(alg.assessedGrossDayCents, 16438);
-      expect(alg.benefitBaseDayCents, 10595);
-      expect(alg.benefitDayCents, 6357);
-      expect(alg.benefitMonthCents, 190710);
+      expect(alg.benefitBaseDayCents, 10578);
+      expect(alg.benefitDayCents, 6346);
+      expect(alg.benefitMonthCents, 190380);
       expect(alg1EntitlementDays(insuredMonths: 24, age: 30), 360);
     });
   });
@@ -65,12 +64,12 @@ void main() {
     );
 
     test('taxes and social insurance', () {
-      expect(net.taxes.taxableCents, 7300400);
-      expect(net.taxes.vorsorgepauschaleCents, 1573000);
-      expect(net.taxes.wageTaxCents, 1224600);
+      expect(net.taxes.taxableCents, 7321400);
+      expect(net.taxes.vorsorgepauschaleCents, 1552000);
+      expect(net.taxes.wageTaxCents, 1231000, reason: 'BMF: 12.310,00 €');
       expect(net.taxes.soliCents, 0,
           reason: 'assessment basis below the doubled exemption limit');
-      expect(net.taxes.churchTaxCents, 84222);
+      expect(net.taxes.churchTaxCents, 84762, reason: 'BMF: 847,62 €');
       expect(net.socialInsurance.healthCents, 610313, reason: 'health capped at ceiling');
       expect(net.socialInsurance.careCents, 125550, reason: 'care 1.8 %, 1 child');
       expect(net.socialInsurance.pensionCents, 837000);
@@ -78,11 +77,12 @@ void main() {
     });
 
     test('net income', () {
-      expect(net.netYearCents, 6001315);
-      expect(net.netMonthCents, 500110);
+      expect(net.netYearCents, 5994375);
+      expect(net.netMonthCents, 499531);
     });
 
-    test('ALG 1 with the increased 67 % rate', () {
+    test('ALG 1 with the increased 67 % rate; BA: 3.296,70 €/month (Δ 16,20 €, <0,5 %)',
+        () {
       final alg = alg1Benefit(
         grossYearCents: eur(90000),
         taxClass: TaxClass.iii,
@@ -92,9 +92,9 @@ void main() {
         totalChildren: 1,
         childrenUnder25: 1,
       );
-      expect(alg.benefitBaseDayCents, 16370);
-      expect(alg.benefitDayCents, 10967);
-      expect(alg.benefitMonthCents, 329010);
+      expect(alg.benefitBaseDayCents, 16353);
+      expect(alg.benefitDayCents, 10956);
+      expect(alg.benefitMonthCents, 328680);
     });
   });
 
@@ -106,10 +106,10 @@ void main() {
     );
 
     test('taxes and social insurance', () {
-      expect(net.taxes.taxableCents, 11152500);
-      expect(net.taxes.vorsorgepauschaleCents, 1720900);
-      expect(net.taxes.wageTaxCents, 3570400);
-      expect(net.taxes.soliCents, 182712, reason: 'taper zone still applies');
+      expect(net.taxes.taxableCents, 11173500);
+      expect(net.taxes.vorsorgepauschaleCents, 1699900);
+      expect(net.taxes.wageTaxCents, 3579300);
+      expect(net.taxes.soliCents, 183771, reason: 'taper zone still applies');
       expect(net.socialInsurance.healthCents, 610313);
       expect(net.socialInsurance.careCents, 167400);
       expect(net.socialInsurance.pensionCents, 943020, reason: 'pension capped at ceiling');
@@ -117,22 +117,23 @@ void main() {
     });
 
     test('net income', () {
-      expect(net.netYearCents, 7394335);
-      expect(net.netMonthCents, 616195);
+      expect(net.netYearCents, 7384376);
+      expect(net.netMonthCents, 615365);
     });
 
-    test('ALG 1: assessment wage capped at the ceiling → maximum benefit', () {
+    test('ALG 1: assessment wage capped at the ceiling → maximum benefit; '
+        'BA: 2.810,10 €/month (Δ 2,70 €, <0,1 %)', () {
       final alg = alg1Benefit(
         grossYearCents: eur(130000),
         taxClass: TaxClass.i,
         age: 45,
       );
       expect(alg.assessedGrossYearCents, eur(101400));
-      expect(alg.wageTaxYearCents, 2369200);
-      expect(alg.soliYearCents, 39769);
-      expect(alg.benefitBaseDayCents, 15624);
-      expect(alg.benefitDayCents, 9374);
-      expect(alg.benefitMonthCents, 281220);
+      expect(alg.wageTaxYearCents, 2378100);
+      expect(alg.soliYearCents, 40828);
+      expect(alg.benefitBaseDayCents, 15597);
+      expect(alg.benefitDayCents, 9358);
+      expect(alg.benefitMonthCents, 280740);
     });
   });
 
@@ -147,9 +148,9 @@ void main() {
     );
 
     test('taxes and social insurance', () {
-      expect(net.taxes.taxableCents, 5957300);
-      expect(net.taxes.vorsorgepauschaleCents, 1416100);
-      expect(net.taxes.wageTaxCents, 1406800);
+      expect(net.taxes.taxableCents, 5978400);
+      expect(net.taxes.vorsorgepauschaleCents, 1395000);
+      expect(net.taxes.wageTaxCents, 1414900);
       expect(net.taxes.soliCents, 0,
           reason: 'below the exemption limit with 2 child allowances');
       expect(net.socialInsurance.careCents, 108113,
@@ -158,8 +159,8 @@ void main() {
     });
 
     test('net income', () {
-      expect(net.netYearCents, 4579774);
-      expect(net.netMonthCents, 381648);
+      expect(net.netYearCents, 4571674);
+      expect(net.netMonthCents, 380973);
     });
   });
 
@@ -176,18 +177,19 @@ void main() {
     );
 
     test('taxes and social insurance', () {
-      expect(net.taxes.taxableCents, 3491300);
-      expect(net.taxes.vorsorgepauschaleCents, 882100);
-      expect(net.taxes.wageTaxCents, 1043800, reason: '§ 39b Abs. 2 S. 7 (class V)');
+      expect(net.taxes.taxableCents, 3504900);
+      expect(net.taxes.vorsorgepauschaleCents, 868500);
+      expect(net.taxes.wageTaxCents, 1049400,
+          reason: '§ 39b Abs. 2 S. 7 (class V); BMF: 10.494,00 €');
       expect(net.taxes.soliCents, 0);
-      expect(net.taxes.churchTaxCents, 20224,
-          reason: '8 % on the notional wage tax with 2 child allowances');
+      expect(net.taxes.churchTaxCents, 83952,
+          reason: 'class V: 8 % on the full wage tax (no child allowances); BMF: 839,52 €');
       expect(net.socialInsurance.totalCents, 940500);
     });
 
     test('net income', () {
-      expect(net.netYearCents, 2495476);
-      expect(net.netMonthCents, 207956);
+      expect(net.netYearCents, 2426148);
+      expect(net.netMonthCents, 202179);
     });
   });
 
@@ -222,19 +224,20 @@ void main() {
 
     test('assessment and maximum duration', () {
       expect(alg.assessedGrossDayCents, 26027);
-      expect(alg.wageTaxYearCents, 1364400);
-      expect(alg.benefitBaseDayCents, 17083);
-      expect(alg.benefitDayCents, 11445);
-      expect(alg.benefitMonthCents, 343350);
+      expect(alg.wageTaxYearCents, 1371000);
+      expect(alg.benefitBaseDayCents, 17065);
+      expect(alg.benefitDayCents, 11433);
+      expect(alg.benefitMonthCents, 342990);
       expect(alg1EntitlementDays(insuredMonths: 48, age: 58), 720);
     });
 
     test('blocking period after a termination agreement: half a year of ALG lost', () {
-      final s = blockingPeriodSimulation(entitlementDays: 720, benefitDayCents: 11445);
+      final s = blockingPeriodSimulation(
+          entitlementDays: 720, benefitDayCents: alg.benefitDayCents);
       expect(s.blockingDays, 84);
       expect(s.reductionDays, 180, reason: 'one quarter of 720 days');
       expect(s.remainingEntitlementDays, 540);
-      expect(s.lostBenefitCents, 2060100, reason: '180 × 114.45 € = 20,601 €');
+      expect(s.lostBenefitCents, 180 * 11433, reason: '180 × 114.33 € = 20,579.40 €');
     });
   });
 
@@ -246,9 +249,9 @@ void main() {
     );
 
     test('assessment and entitlement duration (30 months, age 50 → 450 days)', () {
-      expect(alg.benefitBaseDayCents, 13257);
-      expect(alg.benefitDayCents, 7954);
-      expect(alg.benefitMonthCents, 238620);
+      expect(alg.benefitBaseDayCents, 13234);
+      expect(alg.benefitDayCents, 7940);
+      expect(alg.benefitMonthCents, 238200);
       expect(alg1EntitlementDays(insuredMonths: 30, age: 50), 450);
     });
 
