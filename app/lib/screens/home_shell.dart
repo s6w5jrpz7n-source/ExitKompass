@@ -37,6 +37,15 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     await Printing.sharePdf(bytes: bytes, filename: 'exitkompass-dossier.pdf');
   }
 
+  Future<void> _clearData() async {
+    await ref.read(wizardProvider.notifier).clearSaved();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Gespeicherte Daten wurden gelöscht.')),
+    );
+    Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,6 +56,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             icon: const Icon(Icons.picture_as_pdf),
             tooltip: 'Als PDF-Dossier teilen',
             onPressed: _sharePdf,
+          ),
+          PopupMenuButton<String>(
+            onSelected: (v) {
+              if (v == 'clear') _clearData();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'clear', child: Text('Gespeicherte Daten löschen')),
+            ],
           ),
         ],
       ),

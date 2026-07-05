@@ -19,10 +19,12 @@ Flutter-App des ExitKompass (iOS + Android). Baut auf dem reinen Dart-Package
 - PDF-Dossier: „Entscheidungs-Dossier" (Eingaben, Szenario-Vergleich,
   Hinweise, Fristen, Disclaimer) via Teilen-Button; eingebettete
   DejaVu-Schrift für korrekte €/Umlaut-Darstellung
-- State: Riverpod (in-memory, kein Backend/Konto/Cloud)
+- State: Riverpod; Eingaben werden lokal via Drift (SQLite) gespeichert
+  und beim Start wiederhergestellt (Szenario-Ergebnisse bleiben
+  in-memory, Spec §6). „Gespeicherte Daten löschen" im Overflow-Menü.
 
-Noch offen (Woche 5–6): RevenueCat/Paywall, Drift-Persistenz,
-lokale Push-Erinnerungen für die Fristen.
+Noch offen (Woche 5–6): RevenueCat/Paywall, lokale Push-Erinnerungen
+für die Fristen.
 
 ## Entwicklung
 

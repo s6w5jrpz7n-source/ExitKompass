@@ -1,10 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'data/app_database.dart';
+import 'data/wizard_repository.dart';
 import 'screens/onboarding_screen.dart';
+import 'state/wizard.dart';
 
-void main() {
-  runApp(const ProviderScope(child: ExitKompassApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Local, on-device persistence (no backend/account/cloud, per CLAUDE.md).
+  final db = AppDatabase();
+  final repository = WizardRepository(db);
+  final saved = await repository.load();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        wizardProvider.overrideWith(
+          (ref) => WizardController(repository: repository, initial: saved),
+        ),
+      ],
+      child: const ExitKompassApp(),
+    ),
+  );
 }
 
 class ExitKompassApp extends StatelessWidget {

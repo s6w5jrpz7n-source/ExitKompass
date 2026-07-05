@@ -1,6 +1,8 @@
 import 'package:exit_engine/exit_engine.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/wizard_repository.dart';
+
 /// Which situation the user is in (spec step 1). Only biases which
 /// scenario is emphasised; the engine always computes all four.
 enum Situation { kuendigungErhalten, aufhebungAngeboten, ueberlegeZuKuendigen, nurInfo }
@@ -140,10 +142,28 @@ class WizardData {
 }
 
 /// Holds the wizard inputs; screens read and mutate via this controller.
+/// When a [WizardRepository] is provided, every change is persisted.
 class WizardController extends StateNotifier<WizardData> {
-  WizardController() : super(WizardData());
+  // Named parameters cannot bind a private field directly, so the
+  // initializing-formal lint does not apply here.
+  WizardController({WizardRepository? repository, WizardData? initial})
+      // ignore: prefer_initializing_formals
+      : _repository = repository,
+        super(initial ?? WizardData());
 
-  void update(WizardData Function(WizardData) mutate) => state = mutate(state);
+  final WizardRepository? _repository;
+
+  void update(WizardData Function(WizardData) mutate) {
+    state = mutate(state);
+    _repository?.save(state);
+  }
+
+  /// Resets the inputs to their defaults and deletes the saved state
+  /// (spec §13: "Daten vollständig löschen").
+  Future<void> clearSaved() async {
+    state = WizardData();
+    await _repository?.clear();
+  }
 }
 
 final wizardProvider =
