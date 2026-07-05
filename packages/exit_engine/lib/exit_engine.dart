@@ -6,6 +6,7 @@ library;
 
 export 'src/m1_income_tax.dart';
 export 'src/m2_social_insurance.dart';
+export 'src/m3_severance.dart';
 export 'src/money.dart';
 export 'src/net_income.dart';
 export 'src/params.dart';
