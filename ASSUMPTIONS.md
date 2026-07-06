@@ -309,6 +309,35 @@ setzt das **absichtlich anders** um (Privacy-USP, Einmalkauf-Modell, Spec §8):
   hinwenden") in derselben `rankedHelpResources`-Reihenfolge, sodass das
   teilbare Entscheidungs-Dossier ohne die App auskommt. Auch dort keine
   Links/Werbung, Stand-Datum und der „verdient nichts"-Hinweis inklusive.
+- **A10.5 Auch im Info-only-Pfad:** Wer im Onboarding „Nur informieren – zum
+  Ratgeber" wählt, durchläuft nie den Rechner und sähe das Panel sonst nicht.
+  Deshalb blendet die standalone `RatgeberScreen` es ein
+  (`RatgeberTab(showHelpPanel: true)`, ohne Flags → neutrale Reihenfolge). Im
+  Post-Wizard-`HomeShell` bleibt der Ratgeber-Tab bewusst ohne Panel (es lebt
+  dort im Vergleichs-Tab), um Doppelung zu vermeiden – ein Widget-Test sichert
+  beide Fälle.
+
+## A11 – M7 Liquiditäts-/Brückenplaner
+
+Neues Engine-Modul + „Liquidität"-Tab: „Reicht mein Geld bis zum neuen Job?".
+
+- **A11.1 Reine Cashflow-Projektion:** `computeRunway` addiert Monat für Monat
+  den Netto-Cashflow des gewählten Szenarios (M5) und zieht die monatlichen
+  Ausgaben ab, ausgehend von den Rücklagen. **Keine** Zinsen, keine Inflation,
+  keine unregelmäßigen Einmalkosten – bewusste Vereinfachung, als solche in
+  der UI gekennzeichnet („Schätzung, keine Finanzberatung").
+- **A11.2 Monatsraster wie M5:** Der Planer erbt das Monats-Offset-Raster des
+  Aggregators (A7.1); der „Deckungslücke ab"-Monat wird über
+  `referenceDate + firstNegativeMonth` grob in einen Kalendermonat übersetzt.
+- **A11.3 Zwei neue persistierte Eingaben:** `monthlyExpensesEuro` (Default
+  2.500) und `savingsEuro` (Default 10.000) werden im Wizard-State gespeichert.
+  Das erforderte eine **Schema-Migration v2 → v3** (`app_database.dart`):
+  `onUpgrade` fügt die Spalten `monthly_expenses_euro` und `savings_euro` mit
+  ihren Defaults hinzu; bestehende Profile laufen ohne Datenverlust weiter.
+  `persistence_test` prüft Migration von v1 (alle Spalten neu) **und** v2 → v3.
+- **A11.4 Szenario-Wahl:** Der Runway hängt am Einkommensstrom eines Szenarios;
+  der Tab lässt es wählen (Default = bestes Szenario). Die Auswahl ist
+  transienter UI-Zustand (nicht persistiert).
 
 ## A6 – Sprach- und Historien-Migration (2026-07-05)
 
