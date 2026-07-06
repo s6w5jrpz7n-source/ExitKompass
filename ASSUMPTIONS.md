@@ -304,6 +304,11 @@ setzt das **absichtlich anders** um (Privacy-USP, Einmalkauf-Modell, Spec §8):
   (`helpResourcesReviewedOn`) und je Eintrag optional Rechtsgrundlagen (§).
   Der Detail-Screen zeigt den Disclaimer-Footer und den ausdrücklichen
   Hinweis „ExitKompass verdient nichts an diesen Hinweisen".
+- **A10.4 Auch im PDF-Dossier:** Der `_helpSection`-Block im
+  `buildDossierPdf` listet dieselben Anlaufstellen kompakt (Titel + „Wo
+  hinwenden") in derselben `rankedHelpResources`-Reihenfolge, sodass das
+  teilbare Entscheidungs-Dossier ohne die App auskommt. Auch dort keine
+  Links/Werbung, Stand-Datum und der „verdient nichts"-Hinweis inklusive.
 
 ## A6 – Sprach- und Historien-Migration (2026-07-05)
 

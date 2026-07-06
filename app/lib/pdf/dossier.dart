@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import '../content/help_resources.dart';
 import '../state/wizard.dart';
 import '../timeline/timeline.dart';
 import '../util/format.dart';
@@ -160,6 +161,9 @@ Future<Uint8List> buildDossierPdf({
               ),
             ]),
           ),
+
+        h('Passende Hilfe (neutrale Anlaufstellen, keine Werbung)'),
+        _helpSection(result),
       ],
     ),
   );
@@ -222,3 +226,30 @@ String _strengthLabel(NegotiationStrength s) => switch (s) {
       NegotiationStrength.standard => 'standard',
       NegotiationStrength.stark => 'stark',
     };
+
+/// Compact list of neutral help resources, ordered by relevance to the
+/// scenario risk flags (same ranking as the on-screen panel). No links, no
+/// broking – ExitKompass earns nothing here.
+pw.Widget _helpSection(AggregateResult result) {
+  final flagCodes = <String>{
+    for (final scenario in result.scenarios.values)
+      for (final flag in scenario.flags) flag.code,
+  };
+  final resources = rankedHelpResources(flagCodes);
+  return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+    for (final r in resources)
+      pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 2),
+        child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+          pw.Text(r.title,
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.Text(r.whereToTurn, style: const pw.TextStyle(fontSize: 9)),
+        ]),
+      ),
+    pw.SizedBox(height: 2),
+    pw.Text(
+        'Stand: $helpResourcesReviewedOn. ExitKompass verdient nichts an diesen '
+        'Hinweisen und vermittelt keine Anbieter.',
+        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+  ]);
+}

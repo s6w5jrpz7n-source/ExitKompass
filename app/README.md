@@ -27,9 +27,10 @@ Flutter-App des ExitKompass (iOS + Android). Baut auf dem reinen Dart-Package
   Rechtsgrundlagen, Arbeitsagentur) – allgemeine Rechtsinfo, keine
   Einzelfallberatung (siehe ASSUMPTIONS.md A8)
 - PDF-Dossier: „Entscheidungs-Dossier" (Eingaben, Szenario-Vergleich,
-  Hinweise, Verhandlungs-Bandbreite, Fristen, Disclaimer) via Teilen-Button;
-  eingebettete DejaVu-Schrift für korrekte €/Umlaut-Darstellung. Die
-  Bandbreite nutzt denselben Schätzer wie der Wizard (ASSUMPTIONS.md A9.7)
+  Hinweise, Verhandlungs-Bandbreite, Fristen, „Passende Hilfe", Disclaimer)
+  via Teilen-Button; eingebettete DejaVu-Schrift für korrekte
+  €/Umlaut-Darstellung. Bandbreite und Hilfe-Liste nutzen dieselbe Logik wie
+  im Rechner (ASSUMPTIONS.md A9.7, A10.4)
 - Einstellungen (§4/§9): Parameterjahr, Disclaimer, Impressum/
   Datenschutz (Platzhalter bis Release), Analytics-Opt-in (aus),
   „Daten löschen" mit Bestätigung
