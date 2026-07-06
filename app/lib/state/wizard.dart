@@ -168,6 +168,30 @@ class WizardData {
       horizonMonths: horizonMonths,
     );
   }
+
+  /// Full years of tenure (entry → exit), clamped like the estimator.
+  int get tenureYears =>
+      (exitDate.difference(entryDate).inDays / 365).floor().clamp(0, 60);
+
+  /// Age at the exit date.
+  int get ageAtExit => exitDate.year - birthYear;
+
+  /// A negotiable severance range from the persisted inputs (M6). The
+  /// negotiation [strength] defaults to the one suggested by the persisted
+  /// Kündigungsgrund; [smallBusiness] is transient UI state and defaults to
+  /// false. Shared by the on-screen estimator and the PDF dossier so both
+  /// stay in sync.
+  SeveranceEstimate estimateSeveranceRange({
+    NegotiationStrength? strength,
+    bool smallBusiness = false,
+  }) =>
+      estimateSeverance(
+        grossMonthCents: grossMonthEuro * 100,
+        tenureYears: tenureYears,
+        age: ageAtExit,
+        strength: strength ?? kuendigungsArt.suggestedStrength,
+        smallBusiness: smallBusiness,
+      );
 }
 
 /// Holds the wizard inputs; screens read and mutate via this controller.

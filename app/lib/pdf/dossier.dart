@@ -136,6 +136,9 @@ Future<Uint8List> buildDossierPdf({
               pw.SizedBox(height: 6),
             ]),
 
+        h('Verhandlungs-Bandbreite (Orientierung, kein Rechtsanspruch)'),
+        _severanceEstimate(data),
+
         h('Deine Fristen'),
         for (final item in timeline)
           pw.Padding(
@@ -170,3 +173,52 @@ pw.Widget _cell(String text, {bool bold = false}) => pw.Padding(
           style: pw.TextStyle(
               fontSize: 10, fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal)),
     );
+
+/// The M6 severance range block. Uses the persisted inputs; the negotiation
+/// position defaults to the one suggested by the (persisted) Kündigungsgrund,
+/// so the dossier matches what the on-screen estimator seeds.
+pw.Widget _severanceEstimate(WizardData data) {
+  final strength = data.kuendigungsArt.suggestedStrength;
+  final est = data.estimateSeveranceRange(strength: strength);
+  pw.Widget row(String k, String v) => pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 1),
+        child: pw.Row(children: [
+          pw.SizedBox(
+              width: 220,
+              child: pw.Text(k, style: const pw.TextStyle(fontSize: 10))),
+          pw.Expanded(
+              child: pw.Text(v,
+                  style:
+                      pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
+        ]),
+      );
+  return pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+    row('Realistische Spanne',
+        '${euroFromCents(est.lowCents, withDecimals: false)} – '
+            '${euroFromCents(est.highCents, withDecimals: false)}'),
+    row('Orientierungswert (Mittel)',
+        euroFromCents(est.pointCents, withDecimals: false)),
+    row('Regelabfindung (§ 1a, Faktor 0,5)',
+        euroFromCents(est.regelabfindungCents, withDecimals: false)),
+    row('Grundlage',
+        '${data.tenureYears} Jahre, Alter ${data.ageAtExit}, Position '
+            '„${_strengthLabel(strength)}" (aus Kündigungsgrund: '
+            '${data.kuendigungsArt.label})'),
+    if (est.cappedByKschG10)
+      pw.Text(
+          'Obere Grenze auf ${est.kschG10CapMonths} Monatsgehälter gekappt '
+          '(§ 10 KSchG).',
+          style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+    pw.SizedBox(height: 2),
+    pw.Text(
+        'Orientierung aus der arbeitsgerichtlichen Faustformel – keine Zusage. '
+        'Die tatsächliche Höhe hängt vom Einzelfall ab.',
+        style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
+  ]);
+}
+
+String _strengthLabel(NegotiationStrength s) => switch (s) {
+      NegotiationStrength.schwach => 'schwach',
+      NegotiationStrength.standard => 'standard',
+      NegotiationStrength.stark => 'stark',
+    };

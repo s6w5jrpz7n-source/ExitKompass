@@ -238,6 +238,17 @@ einer Höhen-Schätzung). Bewusst als **Orientierung, kein Rechtsanspruch**:
   gespeicherte Profile ohne Datenverlust weiterlaufen. Ein
   `persistence_test`-Fall spielt den Downgrade → Upgrade durch und sichert
   Datenerhalt und Default zu.
+- **A9.7 Bandbreite auch im PDF-Dossier:** Die Verhandlungs-Bandbreite
+  erscheint zusätzlich im „Entscheidungs-Dossier" (PDF) als eigener
+  Abschnitt (Spanne · Orientierungswert · Regelabfindung · Grundlage). Da
+  das Dossier aus den **persistierten** Angaben erzeugt wird und die
+  Verhandlungsstärke selbst transient ist (A9.5), verwendet das PDF die aus
+  dem gespeicherten Kündigungsgrund abgeleitete `suggestedStrength` und
+  `smallBusiness = false`. Die Ableitung (Betriebszugehörigkeit, Alter,
+  Bandbreite) liegt als gemeinsamer Helper `WizardData.estimateSeveranceRange`
+  vor, den Bildschirm-Schätzer und PDF teilen – eine einzige Quelle der
+  Wahrheit. Der Abschnitt ist ausdrücklich als „Orientierung, kein
+  Rechtsanspruch" überschrieben.
 
 ## A8 – Ratgeber & Fristen (Content, RDG/StBerG-Leitlinie)
 

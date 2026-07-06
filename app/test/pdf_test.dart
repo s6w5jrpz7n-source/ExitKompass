@@ -38,4 +38,27 @@ void main() {
     final result = WizardData().compute();
     expect(result.scenarios.keys.toSet(), ScenarioType.values.toSet());
   });
+
+  test('renders the severance range even for a § 10-capped senior profile',
+      () async {
+    // Age 58, 26 years tenure → § 10 KSchG cap applies; the dossier must
+    // build the capped branch without crashing.
+    final data = WizardData(
+      birthYear: 1968,
+      entryDate: DateTime(2000, 1, 1),
+      exitDate: DateTime(2026, 1, 1),
+      grossMonthEuro: 6000,
+    );
+    expect(data.estimateSeveranceRange().cappedByKschG10, isTrue);
+
+    final bytes = await buildDossierPdf(
+      data: data,
+      result: data.compute(),
+      timeline: buildTimeline(data),
+      regularTtf: await rootBundle.load('assets/fonts/DejaVuSans.ttf'),
+      boldTtf: await rootBundle.load('assets/fonts/DejaVuSans-Bold.ttf'),
+    );
+    expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+    expect(bytes.length, greaterThan(2000));
+  });
 }

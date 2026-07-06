@@ -309,14 +309,10 @@ class _SeveranceEstimatorState extends ConsumerState<_SeveranceEstimator> {
   Widget build(BuildContext context) {
     final data = ref.watch(wizardProvider);
     final theme = Theme.of(context);
-    final tenureYears =
-        (data.exitDate.difference(data.entryDate).inDays / 365).floor().clamp(0, 60);
-    final age = data.exitDate.year - data.birthYear;
+    final tenureYears = data.tenureYears;
+    final age = data.ageAtExit;
 
-    final estimate = estimateSeverance(
-      grossMonthCents: data.grossMonthEuro * 100,
-      tenureYears: tenureYears,
-      age: age,
+    final estimate = data.estimateSeveranceRange(
       strength: _strength,
       smallBusiness: _smallBusiness,
     );
