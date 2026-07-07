@@ -12,7 +12,7 @@ void main() {
       }
     });
 
-    test('all three categories are represented', () {
+    test('every category is represented by at least one question', () {
       final cats = interviewQuestions.map((q) => q.category).toSet();
       expect(cats, InterviewCategory.values.toSet());
     });
@@ -20,6 +20,14 @@ void main() {
     test('a review date and the STAR explainer are set', () {
       expect(bewerbungReviewedOn, isNotEmpty);
       expect(starMethodExplainer, contains('STAR'));
+    });
+
+    test('value-selling principles have a title and body', () {
+      expect(valueSellingPrinciples, isNotEmpty);
+      for (final p in valueSellingPrinciples) {
+        expect(p.title, isNotEmpty);
+        expect(p.body, isNotEmpty);
+      }
     });
   });
 
@@ -34,7 +42,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Die STAR-Methode'), findsOneWidget);
-    expect(find.text('Gehaltsverhandlung'), findsOneWidget);
+    expect(find.text('Grundhaltung: Verkauf dich über deinen Wert'), findsOneWidget);
+    expect(find.text('Fragen, die DU stellst'), findsOneWidget);
 
     // Expand a question to reveal its "So gehst du ran" block.
     await tester.tap(find.textContaining('Erzählen Sie etwas über sich'));
