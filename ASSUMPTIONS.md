@@ -339,6 +339,25 @@ Neues Engine-Modul + „Liquidität"-Tab: „Reicht mein Geld bis zum neuen Job?
   der Tab lässt es wählen (Default = bestes Szenario). Die Auswahl ist
   transienter UI-Zustand (nicht persistiert).
 
+## A12 – M8 Abfindungs-Auszahlungs-Timing
+
+Neues Engine-Modul + Wizard-Card „Auszahlung timen": vergleicht das Netto der
+Abfindung bei Auszahlung dieses vs. nächstes Jahr.
+
+- **A12.1 Effektive Steuer = günstigere Methode:** Je Jahr wird die auf die
+  Abfindung entfallende Steuer als **Minimum** aus Regelbesteuerung und
+  Fünftelregelung angesetzt (die Veranlagung wendet § 34 nur an, wenn er
+  günstiger ist). Netto = Abfindung − effektive Steuer.
+- **A12.2 Nur die zwei zvE als Eingabe:** Der Vergleich braucht das übrige zu
+  versteuernde Einkommen **ohne** Abfindung je Jahr. Diese beiden Werte sind
+  **transienter** UI-Zustand (nicht persistiert); die Card füllt „dieses Jahr"
+  mit `Bruttomonat × 12` vor und „nächstes Jahr" mit 0 (Annahme:
+  einkommensschwaches Jahr). Der Nutzer kann beide anpassen.
+- **A12.3 Vereinfachung:** Kein voller Jahresabschluss beider Jahre (keine
+  weiteren Einkünfte, Werbungskosten, Progressionsvorbehalt des ALG etc.).
+  Reine Orientierung, ausdrücklich „keine Steuerberatung". Die tatsächliche
+  Gestaltung (z. B. Auszahlung Januar statt Dezember) hängt vom Einzelfall ab.
+
 ## A6 – Sprach- und Historien-Migration (2026-07-05)
 
 Die Engine wurde ursprünglich mit deutschen Bezeichnern, Kommentaren und

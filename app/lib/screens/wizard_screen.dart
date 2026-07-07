@@ -250,6 +250,8 @@ class _OfferStep extends ConsumerWidget {
         const SizedBox(height: 12),
         const _SeveranceField(),
         const SizedBox(height: 12),
+        const _SeveranceTimingCard(),
+        const SizedBox(height: 12),
         _DateField(
           label: 'Zugang der Kündigung / des Angebots',
           value: data.noticeDate,
@@ -286,6 +288,101 @@ class _OfferStep extends ConsumerWidget {
         const SizedBox(height: 4),
         Text('Betrachtungszeitraum', style: Theme.of(context).textTheme.bodySmall),
       ],
+    );
+  }
+}
+
+/// Compares the net severance when paid this year vs. next year (M8).
+/// Moving the payout into a low-income year usually lowers the tax. The two
+/// taxable-income inputs are transient UI state (prefilled from the salary).
+class _SeveranceTimingCard extends ConsumerStatefulWidget {
+  const _SeveranceTimingCard();
+
+  @override
+  ConsumerState<_SeveranceTimingCard> createState() => _SeveranceTimingCardState();
+}
+
+class _SeveranceTimingCardState extends ConsumerState<_SeveranceTimingCard> {
+  late int _thisYearEuro = ref.read(wizardProvider).grossMonthEuro * 12;
+  int _nextYearEuro = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final data = ref.watch(wizardProvider);
+    final theme = Theme.of(context);
+    if (data.severanceGrossEuro == 0) return const SizedBox.shrink();
+
+    final c = compareSeveranceTiming(
+      severanceCents: data.severanceGrossEuro * 100,
+      taxableIncomeThisYearCents: _thisYearEuro * 100,
+      taxableIncomeNextYearCents: _nextYearEuro * 100,
+      splitting: data.taxClass == TaxClass.iii,
+    );
+
+    final String verdict;
+    final Color verdictColor;
+    if (c.nextYearBetter) {
+      verdict = 'Auszahlung nächstes Jahr bringt '
+          '${euroFromCents(c.differenceCents, withDecimals: false)} mehr netto.';
+      verdictColor = Colors.green.shade700;
+    } else if (c.gainNextYearCents < 0) {
+      verdict = 'Auszahlung dieses Jahr bringt '
+          '${euroFromCents(c.differenceCents, withDecimals: false)} mehr netto.';
+      verdictColor = theme.colorScheme.primary;
+    } else {
+      verdict = 'Bei diesen Angaben macht das Timing keinen Unterschied.';
+      verdictColor = theme.colorScheme.onSurfaceVariant;
+    }
+
+    return Card(
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Auszahlung timen', style: theme.textTheme.titleSmall),
+            Text(
+              'Wann bleibt netto mehr von der Abfindung – dieses oder nächstes Jahr?',
+              style: theme.textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: _IntField(
+                    label: 'zvE dieses Jahr (€)',
+                    value: _thisYearEuro,
+                    onChanged: (v) => setState(() => _thisYearEuro = v),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _IntField(
+                    label: 'zvE nächstes Jahr (€)',
+                    value: _nextYearEuro,
+                    onChanged: (v) => setState(() => _nextYearEuro = v),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Dieses Jahr netto: '
+                '${euroFromCents(c.thisYear.netSeveranceCents, withDecimals: false)}'),
+            Text('Nächstes Jahr netto: '
+                '${euroFromCents(c.nextYear.netSeveranceCents, withDecimals: false)}'),
+            const SizedBox(height: 4),
+            Text(verdict,
+                style: theme.textTheme.titleSmall?.copyWith(color: verdictColor)),
+            const SizedBox(height: 4),
+            Text(
+              'zvE = zu versteuerndes Einkommen ohne Abfindung. Orientierung, '
+              'keine Steuerberatung.',
+              style: theme.textTheme.labelSmall,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

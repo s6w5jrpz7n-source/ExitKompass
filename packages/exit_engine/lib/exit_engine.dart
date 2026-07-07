@@ -8,6 +8,7 @@
 /// * M5 – scenario aggregator (`m5_scenarios.dart`)
 /// * M6 – severance amount estimate (`m6_severance_estimate.dart`)
 /// * M7 – liquidity / bridge planner (`m7_bridge_plan.dart`)
+/// * M8 – severance payout timing (`m8_severance_timing.dart`)
 ///
 /// All monetary amounts are passed and returned as `int` values in
 /// **cents** unless documented otherwise.
@@ -20,6 +21,7 @@ export 'src/m4_alg1.dart';
 export 'src/m5_scenarios.dart';
 export 'src/m6_severance_estimate.dart';
 export 'src/m7_bridge_plan.dart';
+export 'src/m8_severance_timing.dart';
 export 'src/money.dart';
 export 'src/net_income.dart';
 export 'src/params.dart';
