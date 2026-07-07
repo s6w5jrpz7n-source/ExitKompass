@@ -388,7 +388,15 @@ Kündigung/Lücke erklären, Gehaltsverhandlung) mit STAR-Methode.
 - **A14.2 Allgemein, keine Einzelfallberatung:** Allgemeine Tipps, keine
   individuelle Bewerbungs-/Karriereberatung. Stand-Datum
   `bewerbungReviewedOn`; ein Content-Test sichert Frage + Antwort-Gerüst je
-  Eintrag und alle drei Kategorien.
+  Eintrag und dass jede Kategorie belegt ist.
+- **A14.3 „Value Selling"-Erweiterung:** Der Kern eines eigenen Buch-Entwurfs
+  („Job Interviews as a Sales Pitch") wurde als **deutscher, strukturierter**
+  Inhalt eingearbeitet (nicht der Rohtext übernommen): eine
+  „Grundhaltung"-Sektion mit Value-Selling-Prinzipien (`valueSellingPrinciples`)
+  sowie zwei neue Fragen-Kategorien „Kritische & Fangfragen" und „Fragen, die
+  DU stellst" (die Macht der richtigen Fragen). Kernidee: sich über den
+  **Nutzen** verkaufen, Arbeits*markt* auf Augenhöhe, mit guten Rückfragen das
+  Gespräch führen.
 
 ## A15 – M9 Karenzentschädigung (§§ 74 ff. HGB)
 

@@ -33,6 +33,27 @@ class BewerbungScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text('Grundhaltung: Verkauf dich über deinen Wert',
+                    style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4),
+                for (final p in valueSellingPrinciples)
+                  Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(p.title,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                  color: theme.colorScheme.primary)),
+                          const SizedBox(height: 4),
+                          Text(p.body, style: theme.textTheme.bodyMedium),
+                        ],
+                      ),
+                    ),
+                  ),
                 for (final category in InterviewCategory.values) ...[
                   Padding(
                     padding: const EdgeInsets.only(top: 12, bottom: 4),
