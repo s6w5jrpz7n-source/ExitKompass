@@ -21,6 +21,9 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     expect(bytes.length, greaterThan(2000));
     expect(String.fromCharCodes(bytes.skip(bytes.length - 32)).contains('%%EOF'), isTrue);
+
+    final out = Platform.environment['WORKBOOK_EMPTY_OUT'];
+    if (out != null) File(out).writeAsBytesSync(bytes);
   });
 
   test('filled workbook builds and can be written out for inspection', () async {
