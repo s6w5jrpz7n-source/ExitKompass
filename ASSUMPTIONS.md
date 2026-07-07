@@ -373,6 +373,23 @@ Klartext/Schulnoten.
   erzwingt Text/Bedeutung je Eintrag, Noten im Bereich 1–6 und die
   Vollständigkeit der sechs Leistungsstufen.
 
+## A14 – Bewerbungstraining (Content, bewusst lokal)
+
+Werkzeug im Ratgeber: strukturierte Interview-Vorbereitung (Klassiker,
+Kündigung/Lücke erklären, Gehaltsverhandlung) mit STAR-Methode.
+
+- **A14.1 On-device statt Cloud-KI:** Aus der Marktrecherche stünde ein
+  KI-Mock-Interview zur Wahl; das bräuchte aber die **Cloud** und würde das
+  „alles bleibt auf dem Gerät"-Versprechen (Spec §8) brechen. Deshalb bewusst
+  die **lokale, statische** Variante: kuratierter Fragen-Katalog mit
+  Antwort-Gerüsten und Tipps. Ein optionaler Opt-in-KI-Coach bleibt als
+  spätere, ausdrücklich einzuwilligende Ausbaustufe offen (nicht Teil dieser
+  Umsetzung).
+- **A14.2 Allgemein, keine Einzelfallberatung:** Allgemeine Tipps, keine
+  individuelle Bewerbungs-/Karriereberatung. Stand-Datum
+  `bewerbungReviewedOn`; ein Content-Test sichert Frage + Antwort-Gerüst je
+  Eintrag und alle drei Kategorien.
+
 ## A6 – Sprach- und Historien-Migration (2026-07-05)
 
 Die Engine wurde ursprünglich mit deutschen Bezeichnern, Kommentaren und
