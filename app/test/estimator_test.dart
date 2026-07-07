@@ -45,6 +45,26 @@ void main() {
     expect(applied, greaterThan(0));
   });
 
+  testWidgets('timing card compares this year vs next year and reacts', (tester) async {
+    await _openWizard(tester);
+
+    expect(find.text('Auszahlung timen'), findsOneWidget);
+    // With the defaults (salary this year, 0 next year) next year is better.
+    await tester.ensureVisible(find.textContaining('nächstes Jahr bringt'));
+    expect(find.textContaining('nächstes Jahr bringt'), findsOneWidget);
+
+    // Set both years equal → no advantage.
+    final nextYearField = find.ancestor(
+      of: find.text('zvE nächstes Jahr (€)'),
+      matching: find.byType(TextFormField),
+    );
+    await tester.ensureVisible(nextYearField);
+    await tester.enterText(nextYearField, '60000');
+    await tester.pumpAndSettle();
+    // this year defaults to 5000*12 = 60000, so now equal.
+    expect(find.textContaining('macht das Timing keinen Unterschied'), findsOneWidget);
+  });
+
   test('sanity: estimator engine call is wired the same way', () {
     final e = estimateSeverance(
       grossMonthCents: 500000,

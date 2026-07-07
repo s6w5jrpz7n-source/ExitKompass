@@ -230,6 +230,26 @@ print(plan.monthsCovered);      // 5   → so viele Monate gedeckt
 print(plan.minBalanceCents);    // tiefster Stand (ggf. negativ)
 ```
 
+## M8 – Abfindungs-Auszahlungs-Timing
+
+Vergleicht das **Netto** der Abfindung bei Auszahlung dieses vs. nächstes
+Jahr. Weil die Steuer auf die Abfindung vom übrigen zvE des Auszahlungsjahres
+abhängt (Progression + Fünftelregelung), bringt die Auszahlung in einem
+einkommensschwachen Jahr meist mehr netto. Orientierung, keine Steuerberatung
+(ASSUMPTIONS A12).
+
+```dart
+final t = compareSeveranceTiming(
+  severanceCents: 5000000,             // 50.000 €
+  taxableIncomeThisYearCents: 6000000, // 60.000 € Gehalt dieses Jahr
+  taxableIncomeNextYearCents: 0,       // nächstes Jahr arbeitslos
+);
+print(t.thisYear.netSeveranceCents);   // Netto bei Auszahlung dieses Jahr
+print(t.nextYear.netSeveranceCents);   // Netto bei Auszahlung nächstes Jahr
+print(t.nextYearBetter);               // true → nächstes Jahr günstiger
+print(t.differenceCents);              // Differenz (Betrag)
+```
+
 ## Parameter aktualisieren
 
 `lib/params/params_2026.json` ist die Quelle der Wahrheit. Nach
