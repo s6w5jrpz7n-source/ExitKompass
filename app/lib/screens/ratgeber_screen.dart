@@ -4,6 +4,7 @@ import '../content/models.dart';
 import '../content/ratgeber_content.dart';
 import '../widgets/disclaimer_footer.dart';
 import '../widgets/help_panel.dart';
+import 'bewerbung_screen.dart';
 import 'zeugnis_decoder_screen.dart';
 
 /// Ratgeber tab: articles grouped by category (spec §2.1 knowledge
@@ -36,6 +37,18 @@ class RatgeberTab extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const ZeugnisDecoderScreen()),
+            ),
+          ),
+        ),
+        Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: const Icon(Icons.record_voice_over_outlined),
+            title: const Text('Bewerbungstraining'),
+            subtitle: const Text('Interview-Fragen & Gehaltsverhandlung üben'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const BewerbungScreen()),
             ),
           ),
         ),
