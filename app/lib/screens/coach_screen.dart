@@ -101,7 +101,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
       ),
       body: Column(
         children: [
-          _DisclaimerBanner(),
+          _DisclaimerBanner(aiPowered: _engine.isAiPowered),
           Expanded(
             child: ListView.builder(
               controller: _scroll,
@@ -121,19 +121,25 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
 }
 
 class _DisclaimerBanner extends StatelessWidget {
+  const _DisclaimerBanner({required this.aiPowered});
+  final bool aiPowered;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final text = aiPowered
+        ? 'Übung, keine Rechts- oder Steuerberatung. Deine Eingaben gehen zur '
+            'Antwortgenerierung an einen KI-Dienst (Gemini); gib keine sensiblen '
+            'Daten ein.'
+        : 'Übung, keine Rechts- oder Steuerberatung. Vorschau ohne KI – die '
+            'KI-Anbindung (Gemini) folgt im Premium.';
     return Container(
       width: double.infinity,
       color: theme.colorScheme.surfaceContainerHighest,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      child: Text(
-        'Übung, keine Rechts- oder Steuerberatung. Vorschau ohne KI – die '
-        'KI-Anbindung (Gemini) folgt im Premium.',
-        style: theme.textTheme.bodySmall
-            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-      ),
+      child: Text(text,
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
     );
   }
 }

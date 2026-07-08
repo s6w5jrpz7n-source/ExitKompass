@@ -21,6 +21,10 @@ abstract class CoachEngine {
   /// Short human label for the active backend (shown as a badge).
   String get label;
 
+  /// Whether replies come from a cloud AI (true) or the local preview (false).
+  /// Drives the disclaimer copy (data leaves the device only when true).
+  bool get isAiPowered;
+
   /// The coach's opening line that starts a fresh session.
   String opening();
 

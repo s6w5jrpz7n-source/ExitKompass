@@ -20,6 +20,9 @@ class MockCoachEngine implements CoachEngine {
   String get label => 'Vorschau · lokal';
 
   @override
+  bool get isAiPowered => false;
+
+  @override
   String opening() =>
       'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
       'Person – antworte einfach, wie du es im echten Gespräch tätest. '

@@ -33,6 +33,9 @@ class GeminiCoachEngine implements CoachEngine {
   String get label => 'Gemini Flash';
 
   @override
+  bool get isAiPowered => true;
+
+  @override
   String opening() =>
       'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
       'Person und stelle dir nacheinander Fragen. Antworte, wie du es im '
