@@ -30,8 +30,8 @@ void main() {
 
     expect(reply, contains('Nächste Frage'));
     final body = jsonDecode(captured.body) as Map<String, dynamic>;
-    expect(body['mode'], 'interview');
-    expect(body['personaPrompt'], contains('hart'));
+    expect(body['system'], contains('"Sie"')); // formal register
+    expect(body['system'], contains('hart')); // persona modifier
     expect((body['messages'] as List).last['role'], 'user');
     expect(captured.headers['authorization'], 'Bearer user-123');
     expect(engine.label, 'Gemini Flash');

@@ -25,8 +25,8 @@ class MockCoachEngine implements CoachEngine {
   @override
   String opening(CoachPersona persona) =>
       'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
-      'Person (${persona.label.toLowerCase()}) – antworte einfach, wie du es '
-      'im echten Gespräch tätest. Am besten mit der STAR-Struktur '
+      'Person (${persona.label.toLowerCase()}) – antworten Sie einfach, wie '
+      'Sie es im echten Gespräch täten. Am besten mit der STAR-Struktur '
       '(Situation · Aufgabe · Handlung · Ergebnis).\n\nLos geht’s:\n'
       '${_questions.first.question}';
 
@@ -41,9 +41,9 @@ class MockCoachEngine implements CoachEngine {
 
     final nextIndex = userTurns;
     if (nextIndex >= _questions.length) {
-      return '$tip\n\nDas war die letzte Übungsfrage – gut gemacht! Geh die '
-          'Fragen gern noch einmal durch und formuliere deine Antworten mit '
-          'konkreten Ergebnissen (STAR) noch knackiger.';
+      return '$tip\n\nDas war die letzte Übungsfrage – gut gemacht! Gehen Sie '
+          'die Fragen gern noch einmal durch und formulieren Sie Ihre Antworten '
+          'mit konkreten Ergebnissen (STAR) noch knackiger.';
     }
     return '$tip\n\nNächste Frage:\n${_questions[nextIndex].question}';
   }

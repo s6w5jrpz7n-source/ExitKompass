@@ -53508,7 +53508,7 @@ $S:291}
 A.UK.prototype={
 gzY(){return"Gemini Flash"},
 gaHl(){return!0},
-aJB(a){return"Willkommen zur Gespr\xe4chssimulation. Ich spiele die interviewende Person ("+A.aYw(a).toLowerCase()+") und stelle dir nacheinander Fragen. Antworte, wie du es im echten Gespr\xe4ch t\xe4test \u2013 am besten mit der STAR-Struktur.\n\nLos geht\u2019s: Erz\xe4hl mir kurz etwas \xfcber dich."},
+aJB(a){return"Willkommen zur Gespr\xe4chssimulation. Ich spiele die interviewende Person ("+A.aYw(a).toLowerCase()+") und stelle Ihnen nacheinander Fragen. Antworten Sie, wie Sie es im echten Gespr\xe4ch t\xe4ten \u2013 am besten mit der STAR-Struktur.\n\nErz\xe4hlen Sie mir zu Beginn kurz etwas \xfcber sich."},
 Hi(a,b){return this.aKR(a,b)},
 aKR(a0,a1){var s=0,r=A.Y(t.N),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a
 var $async$Hi=A.Z(function(a2,a3){if(a2===1){o.push(a3)
@@ -53525,7 +53525,7 @@ l=A.b([],t.m0)
 for(g=a0.length,f=0;f<g;++f){k=a0[f]
 e=k.a===B.p4?"user":"coach"
 J.eV(l,A.aw(["role",e,"text",k.b],i,i))}s=7
-return A.a_(n.c.DB("POST",j,m,B.eg.a4N(A.aw(["mode","interview","personaPrompt",h,"messages",l],i,t.K),null),null),$async$Hi)
+return A.a_(n.c.DB("POST",j,m,B.eg.a4N(A.aw(["system",'Du bist ein KI-Coach, der auf Deutsch ein realistisches Bewerbungsgespr\xe4ch simuliert. Du spielst die interviewende Person.\nRegeln:\n- Sprich die Bewerberin/den Bewerber durchgehend h\xf6flich mit "Sie" an \u2013 es ist ein formelles Bewerbungsgespr\xe4ch.\n- Stelle immer nur EINE Frage pro Nachricht. Nach der Antwort: kurzes, konkretes Feedback (1\u20132 S\xe4tze) mit einem Tipp zur STAR-Struktur (Situation, Aufgabe, Handlung, Ergebnis), dann die n\xe4chste Frage.\n- Bleib beim Bewerbungskontext; erfinde keine Fakten \xfcber die Person.\n- Formuliere kurz, klar und nat\xfcrlich.\n- Nach etwa sechs Fragen: fasse St\xe4rken und 2\u20133 konkrete Verbesserungen zusammen.\n\nCharakter, den du als interviewende Person spielst: '+h,"messages",l],i,t.K),null),null),$async$Hi)
 case 7:b=a3
 p=2
 s=6

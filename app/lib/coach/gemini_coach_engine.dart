@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'coach_engine.dart';
+import 'coach_prompts.dart';
 
 /// Coaching engine backed by Gemini Flash **through the premium proxy**.
 ///
@@ -38,9 +39,9 @@ class GeminiCoachEngine implements CoachEngine {
   @override
   String opening(CoachPersona persona) =>
       'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
-      'Person (${persona.label.toLowerCase()}) und stelle dir nacheinander '
-      'Fragen. Antworte, wie du es im echten Gespräch tätest – am besten mit '
-      'der STAR-Struktur.\n\nLos geht’s: Erzähl mir kurz etwas über dich.';
+      'Person (${persona.label.toLowerCase()}) und stelle Ihnen nacheinander '
+      'Fragen. Antworten Sie, wie Sie es im echten Gespräch täten – am besten '
+      'mit der STAR-Struktur.\n\nErzählen Sie mir zu Beginn kurz etwas über sich.';
 
   @override
   Future<String> reply(List<CoachMessage> history, CoachPersona persona) async {
@@ -54,8 +55,7 @@ class GeminiCoachEngine implements CoachEngine {
             'authorization': 'Bearer $entitlementToken',
         },
         body: jsonEncode({
-          'mode': 'interview',
-          'personaPrompt': persona.promptText,
+          'system': interviewSystemPrompt(persona),
           'messages': [
             for (final m in history)
               {'role': m.role == CoachRole.user ? 'user' : 'coach', 'text': m.text},
