@@ -101,7 +101,7 @@ export default {
     while (contents.length && contents[0].role === 'model') contents.shift();
     if (contents.length === 0) return json({ error: 'empty' }, 400);
 
-    const model = env.GEMINI_MODEL || 'gemini-2.0-flash';
+    const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
     const url =
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent` +
       `?key=${env.GEMINI_API_KEY}`;
