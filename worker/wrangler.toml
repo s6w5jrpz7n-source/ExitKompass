@@ -1,0 +1,12 @@
+name = "exitkompass-coach"
+main = "src/index.js"
+compatibility_date = "2026-01-01"
+
+# Non-secret configuration. Secrets (GEMINI_API_KEY, REVENUECAT_API_KEY) are
+# NOT stored here – set them with `wrangler secret put <NAME>`.
+[vars]
+GEMINI_MODEL = "gemini-2.0-flash"
+PREMIUM_ENTITLEMENT = "premium"
+# Set ALLOW_ALL = "true" ONLY for local/dev testing to skip the entitlement
+# check. Leave it out (or "false") in production.
+# ALLOW_ALL = "true"
