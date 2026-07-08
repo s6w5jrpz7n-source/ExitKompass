@@ -50,9 +50,17 @@ function json(body, status = 200) {
 }
 
 async function isEntitled(request, env) {
+  const auth = (request.headers.get('authorization') || '')
+    .replace(/^Bearer\s+/i, '')
+    .trim();
+  // Lightweight gate for testing: a shared access token (NOT the Gemini key).
+  // When set, the bare URL without the token is rejected – closes the open
+  // endpoint. In a web build the token is not fully secret, but it stops
+  // casual abuse of a billing-enabled key.
+  if (env.ACCESS_TOKEN) return auth === env.ACCESS_TOKEN;
   if (env.ALLOW_ALL === 'true') return true;
-  const auth = request.headers.get('authorization') || '';
-  const appUserId = auth.replace(/^Bearer\s+/i, '').trim();
+  // Production: verify the RevenueCat entitlement for the app user.
+  const appUserId = auth;
   if (!appUserId || !env.REVENUECAT_API_KEY) return false;
   // Verify the RevenueCat entitlement for this app user.
   try {
@@ -119,14 +127,10 @@ export default {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(gemReq),
       });
-      if (!r.ok) {
-        // TODO(temporary): surface the real Gemini error for diagnosis.
-        const detail = await r.text();
-        return json({ reply: `⚠️ Gemini ${r.status}: ${detail.slice(0, 400)}` });
-      }
+      if (!r.ok) return json({ error: 'upstream', status: r.status }, 502);
       gem = await r.json();
-    } catch (e) {
-      return json({ reply: `⚠️ Upstream nicht erreichbar: ${String(e).slice(0, 200)}` });
+    } catch (_) {
+      return json({ error: 'upstream_unreachable' }, 502);
     }
 
     const reply =
