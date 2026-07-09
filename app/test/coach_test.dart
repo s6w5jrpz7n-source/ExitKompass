@@ -9,7 +9,8 @@ void main() {
   group('MockCoachEngine', () {
     test('opening poses the first interview question and names the persona', () {
       final engine = MockCoachEngine();
-      final opening = engine.opening(CoachPersona.hart);
+      final opening =
+          engine.opening(CoachMode.interview, CoachPersona.hart);
       expect(opening, contains('Willkommen zur Gesprächssimulation'));
       expect(opening, contains('hart'));
       expect(engine.label, isNotEmpty);
@@ -18,12 +19,29 @@ void main() {
     test('after an answer it gives a tip and the next question', () async {
       final engine = MockCoachEngine();
       final history = [
-        CoachMessage(CoachRole.coach, engine.opening(CoachPersona.neutral)),
+        CoachMessage(CoachRole.coach,
+            engine.opening(CoachMode.interview, CoachPersona.neutral)),
         const CoachMessage(CoachRole.user, 'Meine Antwort.'),
       ];
-      final reply = await engine.reply(history, CoachPersona.neutral);
+      final reply =
+          await engine.reply(history, CoachMode.interview, CoachPersona.neutral);
       expect(reply, contains('Tipp zu dieser Frage'));
       expect(reply, contains('Nächste Frage'));
+    });
+
+    test('negotiation mode opens as HR and replies in character', () async {
+      final engine = MockCoachEngine();
+      final opening =
+          engine.opening(CoachMode.negotiation, CoachPersona.hart);
+      expect(opening, contains('Verhandlungs-Simulation'));
+
+      final history = [
+        CoachMessage(CoachRole.coach, opening),
+        const CoachMessage(CoachRole.user, 'Ich hätte gern mehr Abfindung.'),
+      ];
+      final reply = await engine.reply(
+          history, CoachMode.negotiation, CoachPersona.hart);
+      expect(reply, isNotEmpty);
     });
   });
 

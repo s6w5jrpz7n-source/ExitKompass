@@ -8,6 +8,16 @@ library;
 
 enum CoachRole { coach, user }
 
+/// Which conversation is being simulated.
+enum CoachMode { interview, negotiation }
+
+extension CoachModeX on CoachMode {
+  String get label => switch (this) {
+        CoachMode.interview => 'Bewerbung',
+        CoachMode.negotiation => 'Verhandlung',
+      };
+}
+
 /// The character the AI plays as the conversation partner. Only the flavour
 /// changes – the safety guardrails always stay in place (server-side).
 enum CoachPersona { freundlich, neutral, hart }
@@ -59,12 +69,18 @@ abstract class CoachEngine {
   /// Drives the disclaimer copy (data leaves the device only when true).
   bool get isAiPowered;
 
-  /// The coach's opening line that starts a fresh session in the given
-  /// [persona].
-  String opening(CoachPersona persona);
+  /// The coach's opening line that starts a fresh session for the given
+  /// [mode] and [persona].
+  String opening(CoachMode mode, CoachPersona persona);
 
-  /// The coach's next reply given the whole conversation so far and the
-  /// active [persona]. The last entry in [history] is the user's most recent
-  /// message.
-  Future<String> reply(List<CoachMessage> history, CoachPersona persona);
+  /// The coach's next reply given the whole conversation so far, the active
+  /// [mode]/[persona] and an optional [contextNote] (e.g. the user's real
+  /// severance figures for the negotiation mode). The last entry in [history]
+  /// is the user's most recent message.
+  Future<String> reply(
+    List<CoachMessage> history,
+    CoachMode mode,
+    CoachPersona persona, {
+    String contextNote = '',
+  });
 }

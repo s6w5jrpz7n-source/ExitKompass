@@ -37,14 +37,27 @@ class GeminiCoachEngine implements CoachEngine {
   bool get isAiPowered => true;
 
   @override
-  String opening(CoachPersona persona) =>
-      'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
-      'Person (${persona.label.toLowerCase()}) und stelle Ihnen nacheinander '
-      'Fragen. Antworten Sie, wie Sie es im echten Gespräch täten – am besten '
-      'mit der STAR-Struktur.\n\nErzählen Sie mir zu Beginn kurz etwas über sich.';
+  String opening(CoachMode mode, CoachPersona persona) {
+    final who = persona.label.toLowerCase();
+    if (mode == CoachMode.negotiation) {
+      return 'Willkommen zur Verhandlungs-Simulation. Ich spiele die '
+          'Personalleitung ($who) im Abfindungsgespräch. Führen Sie das '
+          'Gespräch, wie Sie es real täten.\n\nEröffnen Sie ruhig – wie steigen '
+          'Sie ein?';
+    }
+    return 'Willkommen zur Gesprächssimulation. Ich spiele die interviewende '
+        'Person ($who) und stelle Ihnen nacheinander Fragen. Antworten Sie, '
+        'wie Sie es im echten Gespräch täten – am besten mit der '
+        'STAR-Struktur.\n\nErzählen Sie mir zu Beginn kurz etwas über sich.';
+  }
 
   @override
-  Future<String> reply(List<CoachMessage> history, CoachPersona persona) async {
+  Future<String> reply(
+    List<CoachMessage> history,
+    CoachMode mode,
+    CoachPersona persona, {
+    String contextNote = '',
+  }) async {
     final http.Response res;
     try {
       res = await _client.post(
@@ -55,7 +68,7 @@ class GeminiCoachEngine implements CoachEngine {
             'authorization': 'Bearer $entitlementToken',
         },
         body: jsonEncode({
-          'system': interviewSystemPrompt(persona),
+          'system': systemPromptFor(mode, persona, contextNote: contextNote),
           'messages': [
             for (final m in history)
               {'role': m.role == CoachRole.user ? 'user' : 'coach', 'text': m.text},

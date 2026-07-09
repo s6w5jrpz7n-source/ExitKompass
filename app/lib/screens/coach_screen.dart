@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../coach/coach_engine.dart';
 import '../coach/coach_providers.dart';
+import '../state/wizard.dart';
+import '../util/format.dart';
 
 /// Chat-style interview simulation. Uses the pluggable [CoachEngine]; the
 /// local preview scripts an interview offline. Clearly framed as practice,
@@ -19,6 +21,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   bool _typing = false;
+  CoachMode _mode = CoachMode.interview;
   CoachPersona _persona = CoachPersona.neutral;
 
   CoachEngine get _engine => ref.read(coachEngineProvider);
@@ -40,16 +43,46 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     setState(() {
       _messages
         ..clear()
-        ..add(CoachMessage(CoachRole.coach, _engine.opening(_persona)));
+        ..add(CoachMessage(CoachRole.coach, _engine.opening(_mode, _persona)));
       _typing = false;
     });
     _controller.clear();
+  }
+
+  void _changeMode(CoachMode m) {
+    if (m == _mode) return;
+    _mode = m;
+    _reset();
   }
 
   void _changePersona(CoachPersona p) {
     if (p == _persona) return;
     _persona = p;
     _reset();
+  }
+
+  /// Real figures handed to the negotiation partner as the only money values
+  /// it may use – this keeps the AI from inventing severance amounts. Read
+  /// from the wizard the user already filled in.
+  String _negotiationContext() {
+    final data = ref.read(wizardProvider);
+    final est = data.estimateSeveranceRange();
+    final b = StringBuffer()
+      ..writeln('- Bruttomonatsgehalt: '
+          '${euroFromCents(data.grossMonthEuro * 100, withDecimals: false)}')
+      ..writeln('- Betriebszugehörigkeit: ca. ${data.tenureYears} Jahre')
+      ..writeln('- Verhandelbare Abfindungs-Bandbreite: '
+          '${euroFromCents(est.lowCents, withDecimals: false)} bis '
+          '${euroFromCents(est.highCents, withDecimals: false)}')
+      ..writeln('- Orientierungswert (Mitte der Bandbreite): '
+          '${euroFromCents(est.pointCents, withDecimals: false)}')
+      ..writeln('- Regelabfindung (§ 1a KSchG, 0,5 Gehälter je Jahr): '
+          '${euroFromCents(est.regelabfindungCents, withDecimals: false)}');
+    if (data.severanceGrossEuro > 0) {
+      b.writeln('- Aktuell im Raum stehendes Angebot: '
+          '${euroFromCents(data.severanceGrossEuro * 100, withDecimals: false)}');
+    }
+    return b.toString().trimRight();
   }
 
   Future<void> _send() async {
@@ -62,7 +95,13 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     _controller.clear();
     _scrollToEnd();
 
-    final reply = await _engine.reply(List.unmodifiable(_messages), _persona);
+    final reply = await _engine.reply(
+      List.unmodifiable(_messages),
+      _mode,
+      _persona,
+      contextNote:
+          _mode == CoachMode.negotiation ? _negotiationContext() : '',
+    );
     if (!mounted) return;
     setState(() {
       _messages.add(CoachMessage(CoachRole.coach, reply));
@@ -86,6 +125,9 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final subtitle = _mode == CoachMode.negotiation
+        ? 'Abfindungsverhandlung'
+        : 'Bewerbungsgespräch';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Gesprächssimulation'),
@@ -93,7 +135,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
           preferredSize: const Size.fromHeight(24),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 6),
-            child: Text('Bewerbungsgespräch · ${_engine.label}',
+            child: Text('$subtitle · ${_engine.label}',
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
           ),
@@ -109,6 +151,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
       body: Column(
         children: [
           _DisclaimerBanner(aiPowered: _engine.isAiPowered),
+          _ModeSelector(selected: _mode, onChanged: _changeMode),
           _PersonaSelector(selected: _persona, onChanged: _changePersona),
           Expanded(
             child: ListView.builder(
@@ -148,6 +191,39 @@ class _DisclaimerBanner extends StatelessWidget {
       child: Text(text,
           style: theme.textTheme.bodySmall
               ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+    );
+  }
+}
+
+class _ModeSelector extends StatelessWidget {
+  const _ModeSelector({required this.selected, required this.onChanged});
+  final CoachMode selected;
+  final ValueChanged<CoachMode> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: SizedBox(
+        width: double.infinity,
+        child: SegmentedButton<CoachMode>(
+          segments: const [
+            ButtonSegment(
+              value: CoachMode.interview,
+              label: Text('Bewerbung'),
+              icon: Icon(Icons.record_voice_over_outlined),
+            ),
+            ButtonSegment(
+              value: CoachMode.negotiation,
+              label: Text('Verhandlung'),
+              icon: Icon(Icons.handshake_outlined),
+            ),
+          ],
+          selected: {selected},
+          showSelectedIcon: false,
+          onSelectionChanged: (s) => onChanged(s.first),
+        ),
+      ),
     );
   }
 }

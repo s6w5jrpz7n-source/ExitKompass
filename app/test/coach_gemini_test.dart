@@ -24,9 +24,10 @@ void main() {
     );
 
     final reply = await engine.reply([
-      CoachMessage(CoachRole.coach, engine.opening(CoachPersona.hart)),
+      CoachMessage(CoachRole.coach,
+          engine.opening(CoachMode.interview, CoachPersona.hart)),
       const CoachMessage(CoachRole.user, 'Meine Antwort.'),
-    ], CoachPersona.hart);
+    ], CoachMode.interview, CoachPersona.hart);
 
     expect(reply, contains('Nächste Frage'));
     final body = jsonDecode(captured.body) as Map<String, dynamic>;
@@ -37,13 +38,44 @@ void main() {
     expect(engine.label, 'Gemini Flash');
   });
 
+  test('negotiation mode sends the negotiation prompt and context figures',
+      () async {
+    late http.Request captured;
+    final client = MockClient((req) async {
+      captured = req;
+      return http.Response(
+        jsonEncode({'reply': 'Zunächst käme nur der untere Bereich in Frage.'}),
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+    final engine = GeminiCoachEngine(
+      endpoint: 'https://proxy.example/coach',
+      client: client,
+    );
+
+    final reply = await engine.reply(
+      [const CoachMessage(CoachRole.user, 'Ich möchte 60.000 €.')],
+      CoachMode.negotiation,
+      CoachPersona.neutral,
+      contextNote: '- Verhandelbare Abfindungs-Bandbreite: 20.000 € bis 40.000 €',
+    );
+
+    expect(reply, isNotEmpty);
+    final body = jsonDecode(captured.body) as Map<String, dynamic>;
+    expect(body['system'], contains('Abfindungs')); // negotiation base prompt
+    expect(body['system'], contains('Bandbreite')); // context note injected
+  });
+
   test('a 402 from the proxy returns a premium hint', () async {
     final client =
         MockClient((req) async => http.Response('{"error":"not_entitled"}', 402));
     final engine =
         GeminiCoachEngine(endpoint: 'https://proxy.example/coach', client: client);
     final reply = await engine.reply(
-        [const CoachMessage(CoachRole.user, 'Hallo')], CoachPersona.neutral);
+        [const CoachMessage(CoachRole.user, 'Hallo')],
+        CoachMode.interview,
+        CoachPersona.neutral);
     expect(reply, contains('Premium'));
   });
 }
