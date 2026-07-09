@@ -105,9 +105,11 @@ export default {
     const gemReq = {
       systemInstruction: { parts: [{ text: systemText }] },
       contents,
-      // Enough for a full reply (e.g. the 4-part document analysis) without
-      // cutting off mid-sentence.
-      generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+      // Generous cap: gemini-2.5-flash spends part of the budget on hidden
+      // "thinking", so this must be large enough for thinking AND a full
+      // reply, otherwise the visible answer cuts off mid-sentence. You are
+      // only billed for tokens actually generated.
+      generationConfig: { temperature: 0.7, maxOutputTokens: 8192 },
     };
 
     let gem;

@@ -47,7 +47,9 @@ const String kDocumentsSystemPrompt =
     'keine Fakten und keine Zahlen.\n'
     '- Es ist eine allgemeine Orientierung/Übung, keine individuelle Rechts- '
     'oder Karriereberatung.\n'
-    '- Fasse dich klar und knapp und nutze Aufzählungen.';
+    '- Fasse dich klar und knapp und nutze Aufzählungen.\n'
+    '- Schreibe die Überschriften als reinen Text (z. B. "1. Passung") und '
+    'verwende KEINE Markdown-Zeichen wie #, * oder -.';
 
 /// System prompt for the one-time CV extraction (turns an uploaded PDF/image
 /// into structured plain text so the rest of the app can stay text-only).
