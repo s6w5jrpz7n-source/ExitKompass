@@ -4,10 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../state/navigation.dart';
 import '../state/wizard.dart';
 import '../util/format.dart';
 import '../util/labels.dart';
-import 'home_shell.dart';
+import 'root_shell.dart';
 
 /// Four-step wizard (spec §4 screens 2–5): situation, person & tax, job,
 /// offer. Inputs are stored in [wizardProvider].
@@ -33,9 +34,16 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
           if (_step < 3) {
             setState(() => _step++);
           } else {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const HomeShell()),
-            );
+            // Done: show the results in the Finanzen area of the shell.
+            ref.read(rootTabProvider.notifier).state = RootTab.finanzen;
+            final nav = Navigator.of(context);
+            if (nav.canPop()) {
+              nav.popUntil((r) => r.isFirst);
+            } else {
+              nav.pushReplacement(
+                MaterialPageRoute<void>(builder: (_) => const RootShell()),
+              );
+            }
           }
         },
         onStepCancel: _step == 0 ? null : () => setState(() => _step--),

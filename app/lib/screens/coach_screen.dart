@@ -11,7 +11,11 @@ import '../util/format.dart';
 /// local preview scripts an interview offline. Clearly framed as practice,
 /// not advice.
 class CoachScreen extends ConsumerStatefulWidget {
-  const CoachScreen({super.key});
+  const CoachScreen({super.key, this.initialMode = CoachMode.interview});
+
+  /// Which conversation to open in (e.g. negotiation when entered from the
+  /// KI-Coach hub's "Abfindung verhandeln").
+  final CoachMode initialMode;
 
   @override
   ConsumerState<CoachScreen> createState() => _CoachScreenState();
@@ -22,7 +26,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   final _controller = TextEditingController();
   final _scroll = ScrollController();
   bool _typing = false;
-  CoachMode _mode = CoachMode.interview;
+  late CoachMode _mode = widget.initialMode;
   CoachPersona _persona = CoachPersona.neutral;
 
   CoachEngine get _engine => ref.read(coachEngineProvider);

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'quick_estimate_screen.dart';
-import 'ratgeber_screen.dart';
-import 'wizard_screen.dart';
+import 'root_shell.dart';
 
 /// Onboarding with the mandatory disclaimer acceptance (spec §4 screen 0,
 /// §9): the user must actively agree before entering the wizard.
@@ -68,28 +66,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               const SizedBox(height: 8),
               FilledButton(
                 onPressed: _accepted
-                    ? () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(builder: (_) => const QuickEstimateScreen()),
+                    ? () => Navigator.of(context).pushReplacement(
+                          MaterialPageRoute<void>(builder: (_) => const RootShell()),
                         )
                     : null,
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
-                child: const Text('Abfindung schätzen'),
-              ),
-              TextButton(
-                onPressed: _accepted
-                    ? () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(builder: (_) => const WizardScreen()),
-                        )
-                    : null,
-                child: const Text('Direkt zum Netto-Szenario-Vergleich'),
-              ),
-              TextButton(
-                onPressed: _accepted
-                    ? () => Navigator.of(context).push(
-                          MaterialPageRoute<void>(builder: (_) => const RatgeberScreen()),
-                        )
-                    : null,
-                child: const Text('Nur informieren – zum Ratgeber'),
+                child: const Text('Loslegen'),
               ),
               const SizedBox(height: 8),
                     ],

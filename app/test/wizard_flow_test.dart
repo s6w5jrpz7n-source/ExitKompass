@@ -5,42 +5,61 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:exitkompass_app/main.dart';
+import 'package:exitkompass_app/screens/finanzen_screen.dart';
+import 'package:exitkompass_app/screens/start_hub_screen.dart';
 import 'package:exitkompass_app/screens/wizard_screen.dart';
-import 'package:exitkompass_app/screens/home_shell.dart';
 
 void main() {
-  testWidgets('onboarding gates the wizard behind the disclaimer checkbox',
+  testWidgets('onboarding gates entry behind the disclaimer, then opens the hub',
       (tester) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const ProviderScope(child: ExitKompassApp()));
 
-    // Continue button is disabled until the disclaimer is accepted.
+    // The "Loslegen" button is disabled until the disclaimer is accepted.
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(button.onPressed, isNull);
 
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
-
-    final enabled = tester.widget<FilledButton>(find.byType(FilledButton));
-    expect(enabled.onPressed, isNotNull);
-
-    await tester.tap(find.text('Direkt zum Netto-Szenario-Vergleich'));
+    await tester.tap(find.text('Loslegen'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(WizardScreen), findsOneWidget);
-    expect(find.text('Situation'), findsWidgets);
+    // Lands on the Start hub – all features visible, wizard not forced.
+    expect(find.byType(StartHubScreen), findsOneWidget);
+    expect(find.text('Deine Zahlen'), findsOneWidget);
+    expect(find.byType(WizardScreen), findsNothing);
   });
 
-  testWidgets('wizard reaches the result screen and shows all four scenarios',
+  testWidgets('Finanzen shows the scenarios and the wizard round-trips',
       (tester) async {
+    tester.view.physicalSize = const Size(1200, 2600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(const ProviderScope(child: ExitKompassApp()));
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Direkt zum Netto-Szenario-Vergleich'));
+    await tester.tap(find.text('Loslegen'));
     await tester.pumpAndSettle();
 
-    // Advance through the four steps with the default inputs. The
-    // continue button can sit below the fold in the test viewport, so
-    // scroll it into view first.
+    // Switch to the Finanzen tab → scenario comparison.
+    await tester.tap(find.descendant(
+        of: find.byType(NavigationBar), matching: find.text('Finanzen')));
+    await tester.pumpAndSettle();
+    expect(find.byType(FinanzenScreen), findsOneWidget);
+    expect(find.text('Kündigung durch Arbeitgeber'), findsOneWidget);
+
+    // Edit inputs via the wizard and finish → returns to the shell.
+    await tester.tap(find.descendant(
+        of: find.byType(FinanzenScreen), matching: find.byIcon(Icons.tune)));
+    await tester.pumpAndSettle();
+    expect(find.byType(WizardScreen), findsOneWidget);
+
     for (var i = 0; i < 3; i++) {
       await tester.ensureVisible(find.text('Weiter'));
       await tester.pumpAndSettle();
@@ -52,19 +71,8 @@ void main() {
     await tester.tap(find.text('Szenarien vergleichen'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(HomeShell), findsOneWidget);
-    expect(find.text('Bleiben'), findsWidgets);
-    expect(find.text('Kündigung durch Arbeitgeber'), findsOneWidget);
-
-    // The Fristen and Ratgeber tabs are reachable.
-    await tester.tap(find.text('Fristen'));
-    await tester.pumpAndSettle();
-    expect(find.text('Deine Fristen'), findsOneWidget);
-
-    await tester.tap(find.text('Ratgeber'));
-    await tester.pumpAndSettle();
-    // The Ratgeber opens with its "Werkzeuge" section at the top.
-    expect(find.text('Werkzeuge'), findsOneWidget);
+    expect(find.byType(WizardScreen), findsNothing);
+    expect(find.byType(FinanzenScreen), findsOneWidget);
   });
 
   test('default wizard data computes a full aggregate result', () {

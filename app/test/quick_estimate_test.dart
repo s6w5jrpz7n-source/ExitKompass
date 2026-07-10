@@ -16,7 +16,10 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: ExitKompassApp()));
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Abfindung schätzen'));
+    await tester.tap(find.text('Loslegen'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Schnell-Check'));
+    await tester.tap(find.text('Schnell-Check'));
     await tester.pumpAndSettle();
 
     expect(find.byType(QuickEstimateScreen), findsOneWidget);
@@ -32,7 +35,10 @@ void main() {
     await tester.pumpWidget(const ProviderScope(child: ExitKompassApp()));
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Abfindung schätzen'));
+    await tester.tap(find.text('Loslegen'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Schnell-Check'));
+    await tester.tap(find.text('Schnell-Check'));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('Detaillierten Netto-Vergleich starten'));

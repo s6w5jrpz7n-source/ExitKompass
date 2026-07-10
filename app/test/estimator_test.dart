@@ -1,5 +1,6 @@
 import 'package:exit_engine/exit_engine.dart';
 import 'package:exitkompass_app/main.dart';
+import 'package:exitkompass_app/screens/finanzen_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,7 +14,15 @@ Future<void> _openWizard(WidgetTester tester) async {
   await tester.pumpWidget(const ProviderScope(child: ExitKompassApp()));
   await tester.tap(find.byType(Checkbox));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Direkt zum Netto-Szenario-Vergleich'));
+  await tester.tap(find.text('Loslegen'));
+  await tester.pumpAndSettle();
+  // Open the wizard directly via Finanzen → "Eingaben bearbeiten" so the
+  // inputs stay at their defaults (the quick estimate would prefill them).
+  await tester.tap(find.descendant(
+      of: find.byType(NavigationBar), matching: find.text('Finanzen')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.descendant(
+      of: find.byType(FinanzenScreen), matching: find.byIcon(Icons.tune)));
   await tester.pumpAndSettle();
   // Jump to the offer step (step index 3).
   await tester.tap(find.text('Angebot'));
