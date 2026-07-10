@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'root_shell.dart';
+import 'intake_screen.dart';
 
 /// Onboarding with the mandatory disclaimer acceptance (spec §4 screen 0,
 /// §9): the user must actively agree before entering the wizard.
@@ -67,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               FilledButton(
                 onPressed: _accepted
                     ? () => Navigator.of(context).pushReplacement(
-                          MaterialPageRoute<void>(builder: (_) => const RootShell()),
+                          MaterialPageRoute<void>(builder: (_) => const IntakeScreen()),
                         )
                     : null,
                 style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),

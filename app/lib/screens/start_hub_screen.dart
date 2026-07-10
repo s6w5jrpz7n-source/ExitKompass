@@ -5,12 +5,14 @@ import 'package:printing/printing.dart';
 
 import '../coach/coach_engine.dart';
 import '../pdf/dossier.dart';
+import '../state/intake.dart';
 import '../state/navigation.dart';
 import '../state/wizard.dart';
 import '../timeline/timeline.dart';
 import '../util/format.dart';
 import 'bewerbung_screen.dart';
 import 'coach_screen.dart';
+import 'intake_screen.dart';
 import 'quick_estimate_screen.dart';
 import 'settings_screen.dart';
 import 'tools_screen.dart';
@@ -42,6 +44,9 @@ class StartHubScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final data = ref.watch(wizardProvider);
 
+    final intakeDone = ref.watch(intakeDoneProvider);
+    final goal = ref.watch(startGoalProvider);
+
     void push(Widget screen) => Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => screen));
 
@@ -59,10 +64,14 @@ class StartHubScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
-          _SituationStrip(
-            data: data,
-            onTap: () => _goTab(ref, RootTab.finanzen),
-          ),
+          if (intakeDone)
+            _SituationStrip(
+              data: data,
+              goal: goal,
+              onTap: () => _goTab(ref, RootTab.finanzen),
+            )
+          else
+            _IntakeCta(onTap: () => push(const IntakeScreen())),
           const SizedBox(height: 16),
           _CoachHero(
             onOpen: () => _goTab(ref, RootTab.coach),
@@ -135,16 +144,14 @@ class StartHubScreen extends ConsumerWidget {
   }
 }
 
-String _situationLabel(Situation s) => switch (s) {
-      Situation.kuendigungErhalten => 'Kündigung erhalten',
-      Situation.aufhebungAngeboten => 'Aufhebungsvertrag angeboten',
-      Situation.ueberlegeZuKuendigen => 'Überlege selbst zu kündigen',
-      Situation.nurInfo => 'Nur informieren',
-    };
-
 class _SituationStrip extends StatelessWidget {
-  const _SituationStrip({required this.data, required this.onTap});
+  const _SituationStrip({
+    required this.data,
+    required this.goal,
+    required this.onTap,
+  });
   final WizardData data;
+  final StartGoal? goal;
   final VoidCallback onTap;
 
   @override
@@ -170,19 +177,64 @@ class _SituationStrip extends StatelessWidget {
                     Text('Deine Situation',
                         style: theme.textTheme.labelSmall
                             ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                    Text(_situationLabel(data.situation),
-                        style: theme.textTheme.titleSmall),
-                    if (hasOffer)
-                      Text(
-                        'Abfindung im Angebot: '
-                        '${euroFromCents(data.severanceGrossEuro * 100, withDecimals: false)}',
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                      ),
+                    Text(data.situation.label, style: theme.textTheme.titleSmall),
+                    Text(
+                      [
+                        if (goal != null) goal!.short,
+                        if (hasOffer)
+                          'Angebot ${euroFromCents(data.severanceGrossEuro * 100, withDecimals: false)}',
+                      ].join(' · '),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    ),
                   ],
                 ),
               ),
               Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IntakeCta extends StatelessWidget {
+  const _IntakeCta({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Material(
+      color: cs.primaryContainer,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+          child: Row(
+            children: [
+              Icon(Icons.waving_hand_outlined,
+                  size: 22, color: cs.onPrimaryContainer),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Erzähl uns kurz von deiner Situation',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleSmall
+                            ?.copyWith(color: cs.onPrimaryContainer)),
+                    Text('3 kurze Fragen – dann zeigen wir dir das Passende.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: cs.onPrimaryContainer.withValues(alpha: 0.9))),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: cs.onPrimaryContainer),
             ],
           ),
         ),

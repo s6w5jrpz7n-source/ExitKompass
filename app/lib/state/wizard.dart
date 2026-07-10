@@ -7,6 +7,15 @@ import '../data/wizard_repository.dart';
 /// scenario is emphasised; the engine always computes all four.
 enum Situation { kuendigungErhalten, aufhebungAngeboten, ueberlegeZuKuendigen, nurInfo }
 
+extension SituationLabel on Situation {
+  String get label => switch (this) {
+        Situation.kuendigungErhalten => 'Kündigung erhalten',
+        Situation.aufhebungAngeboten => 'Aufhebungsvertrag angeboten',
+        Situation.ueberlegeZuKuendigen => 'Überlege selbst zu kündigen',
+        Situation.nurInfo => 'Nur informieren',
+      };
+}
+
 /// Grounds for the dismissal. Informs the suggested negotiation strength
 /// of the severance estimate (M6).
 enum KuendigungsArt { unbekannt, betriebsbedingt, verhaltensbedingt, personenbedingt }

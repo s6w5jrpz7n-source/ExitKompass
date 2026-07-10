@@ -18,6 +18,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Überspringen'));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Schnell-Check'));
     await tester.tap(find.text('Schnell-Check'));
     await tester.pumpAndSettle();
@@ -36,6 +38,8 @@ void main() {
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Überspringen'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Schnell-Check'));
     await tester.tap(find.text('Schnell-Check'));

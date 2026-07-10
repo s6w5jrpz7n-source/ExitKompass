@@ -27,6 +27,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Überspringen'));
+    await tester.pumpAndSettle();
 
     // Lands on the Start hub – all features visible, wizard not forced.
     expect(find.byType(StartHubScreen), findsOneWidget);
@@ -45,6 +47,8 @@ void main() {
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Überspringen'));
     await tester.pumpAndSettle();
 
     // Switch to the Finanzen tab → scenario comparison.

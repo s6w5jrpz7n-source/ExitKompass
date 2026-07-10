@@ -16,6 +16,8 @@ Future<void> _openWizard(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.tap(find.text('Loslegen'));
   await tester.pumpAndSettle();
+  await tester.tap(find.text('Überspringen'));
+  await tester.pumpAndSettle();
   // Open the wizard directly via Finanzen → "Eingaben bearbeiten" so the
   // inputs stay at their defaults (the quick estimate would prefill them).
   await tester.tap(find.descendant(
