@@ -5,6 +5,7 @@ import 'data/app_database.dart';
 import 'data/wizard_repository.dart';
 import 'data/workbook_repository.dart';
 import 'screens/onboarding_screen.dart';
+import 'state/coach_session.dart';
 import 'state/wizard.dart';
 import 'state/workbook.dart';
 
@@ -17,6 +18,7 @@ Future<void> main() async {
   final saved = await repository.load();
   final workbookRepo = WorkbookRepository(db);
   final savedAnswers = await workbookRepo.loadAll();
+  final coachSessions = await loadCoachSessions();
 
   runApp(
     ProviderScope(
@@ -26,6 +28,9 @@ Future<void> main() async {
         ),
         workbookProvider.overrideWith(
           (ref) => WorkbookController(repository: workbookRepo, initial: savedAnswers),
+        ),
+        coachSessionProvider.overrideWith(
+          (ref) => CoachSessionController(initial: coachSessions),
         ),
       ],
       child: const ExitKompassApp(),
