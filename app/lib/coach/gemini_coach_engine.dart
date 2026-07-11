@@ -82,49 +82,75 @@ class GeminiCoachEngine implements CoachEngine {
   }
 
   /// POSTs a system prompt + messages to the proxy and returns the reply text
-  /// (or a friendly, user-facing error string – never throws).
+  /// (or a friendly, user-facing error string – never throws). Transient
+  /// upstream overloads (Gemini 503/500/429) are retried a couple of times
+  /// with a short backoff before giving up.
   Future<String> _send({
     required String system,
     required List<Map<String, dynamic>> messages,
   }) async {
-    final http.Response res;
-    try {
-      res = await _client.post(
-        Uri.parse(endpoint),
-        headers: {
-          'content-type': 'application/json',
-          if (entitlementToken != null)
-            'authorization': 'Bearer $entitlementToken',
-        },
-        body: jsonEncode({'system': system, 'messages': messages}),
-      );
-    } catch (_) {
-      return 'Der KI-Coach ist gerade nicht erreichbar (Verbindungsproblem). '
-          'Prüfe deine Internetverbindung und versuch es noch einmal.';
-    }
+    const maxAttempts = 3;
+    final body = jsonEncode({'system': system, 'messages': messages});
 
-    if (res.statusCode == 402 || res.statusCode == 403) {
-      return 'Der KI-Coach ist Teil von Premium. Bitte schalte Premium frei, '
-          'um die KI-gestützte Simulation zu nutzen.';
-    }
-    if (res.statusCode != 200) {
-      // Include the upstream (Gemini) status if the proxy passed it through,
-      // so failures are diagnosable rather than an opaque number.
-      var upstream = '';
+    for (var attempt = 1;; attempt++) {
+      final http.Response res;
       try {
-        final d =
-            jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-        if (d['status'] != null) upstream = ' – Gemini: ${d['status']}';
-      } catch (_) {}
-      return 'Der KI-Coach ist gerade nicht erreichbar (Fehler '
-          '${res.statusCode}$upstream). Versuch es später noch einmal.';
+        res = await _client.post(
+          Uri.parse(endpoint),
+          headers: {
+            'content-type': 'application/json',
+            if (entitlementToken != null)
+              'authorization': 'Bearer $entitlementToken',
+          },
+          body: body,
+        );
+      } catch (_) {
+        if (attempt < maxAttempts) {
+          await Future<void>.delayed(Duration(milliseconds: 700 * attempt));
+          continue;
+        }
+        return 'Der KI-Coach ist gerade nicht erreichbar (Verbindungsproblem). '
+            'Prüfe deine Internetverbindung und versuch es noch einmal.';
+      }
+
+      if (res.statusCode == 402 || res.statusCode == 403) {
+        return 'Der KI-Coach ist Teil von Premium. Bitte schalte Premium frei, '
+            'um die KI-gestützte Simulation zu nutzen.';
+      }
+      if (res.statusCode != 200) {
+        // The proxy passes the upstream (Gemini) status through. Overloads
+        // (503) and transient errors (500/429) are worth another try.
+        int? upstream;
+        try {
+          final d =
+              jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+          upstream = d['status'] as int?;
+        } catch (_) {}
+        final transient = res.statusCode == 429 ||
+            upstream == 503 ||
+            upstream == 500 ||
+            upstream == 429;
+        if (transient && attempt < maxAttempts) {
+          await Future<void>.delayed(Duration(milliseconds: 700 * attempt));
+          continue;
+        }
+        if (upstream == 503) {
+          return 'Der KI-Dienst ist gerade überlastet (Gemini 503). Bitte '
+              'sende deine Nachricht gleich noch einmal.';
+        }
+        final suffix = upstream != null ? ' – Gemini: $upstream' : '';
+        return 'Der KI-Coach ist gerade nicht erreichbar (Fehler '
+            '${res.statusCode}$suffix). Versuch es später noch einmal.';
+      }
+
+      final data =
+          jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
+      final reply = (data['reply'] as String?)?.trim();
+      if (reply == null || reply.isEmpty) {
+        return 'Ich habe gerade keine Antwort erhalten. Formulier deine '
+            'Antwort gern noch einmal.';
+      }
+      return reply;
     }
-    final data = jsonDecode(utf8.decode(res.bodyBytes)) as Map<String, dynamic>;
-    final reply = (data['reply'] as String?)?.trim();
-    if (reply == null || reply.isEmpty) {
-      return 'Ich habe gerade keine Antwort erhalten. Formulier deine Antwort '
-          'gern noch einmal.';
-    }
-    return reply;
   }
 }

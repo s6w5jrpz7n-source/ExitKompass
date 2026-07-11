@@ -67,6 +67,31 @@ void main() {
     expect(body['system'], contains('Bandbreite')); // context note injected
   });
 
+  test('retries a transient Gemini overload (503) then succeeds', () async {
+    var calls = 0;
+    final client = MockClient((req) async {
+      calls++;
+      if (calls == 1) {
+        return http.Response(
+            jsonEncode({'error': 'upstream', 'status': 503}), 502,
+            headers: {'content-type': 'application/json'});
+      }
+      return http.Response(
+          jsonEncode({'reply': 'Alles klar, erzählen Sie mehr.'}), 200,
+          headers: {'content-type': 'application/json'});
+    });
+    final engine =
+        GeminiCoachEngine(endpoint: 'https://proxy.example/coach', client: client);
+
+    final reply = await engine.reply(
+        [const CoachMessage(CoachRole.user, 'Hallo')],
+        CoachMode.interview,
+        CoachPersona.neutral);
+
+    expect(calls, 2); // retried once after the 503
+    expect(reply, contains('Alles klar'));
+  });
+
   test('a 402 from the proxy returns a premium hint', () async {
     final client =
         MockClient((req) async => http.Response('{"error":"not_entitled"}', 402));
