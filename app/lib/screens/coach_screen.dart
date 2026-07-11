@@ -54,16 +54,52 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
     _controller.clear();
   }
 
-  void _changeMode(CoachMode m) {
+  bool get _hasUserTurns => _messages.any((m) => m.role == CoachRole.user);
+
+  /// Confirms before throwing away an ongoing conversation. Returns true when
+  /// there is nothing to lose or the user agreed.
+  Future<bool> _confirmDiscard(String action) async {
+    if (!_hasUserTurns) return true;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Gespräch verwerfen?'),
+        content: Text('$action Das aktuelle Gespräch geht dabei verloren.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Verwerfen'),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  Future<void> _changeMode(CoachMode m) async {
     if (m == _mode) return;
+    if (!await _confirmDiscard('Ein Moduswechsel startet ein neues Gespräch.')) {
+      return;
+    }
     _mode = m;
     _reset();
   }
 
+  /// Switching the conversation partner only changes the tone – keep the
+  /// conversation and apply the new character to the next replies.
   void _changePersona(CoachPersona p) {
     if (p == _persona) return;
-    _persona = p;
-    _reset();
+    setState(() => _persona = p);
+  }
+
+  Future<void> _restart() async {
+    if (await _confirmDiscard('Neu starten setzt das Gespräch zurück.')) {
+      _reset();
+    }
   }
 
   /// Real figures handed to the negotiation partner as the only money values
@@ -156,7 +192,7 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
         actions: [
           IconButton(
             tooltip: 'Neu starten',
-            onPressed: _reset,
+            onPressed: _restart,
             icon: const Icon(Icons.refresh),
           ),
         ],

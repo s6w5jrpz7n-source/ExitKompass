@@ -64,4 +64,41 @@ void main() {
     expect(find.text('Das ist meine Antwort.'), findsOneWidget);
     expect(find.textContaining('Nächste Frage'), findsOneWidget);
   });
+
+  testWidgets('changing the conversation partner keeps the conversation',
+      (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: CoachScreen())),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'Meine erste Antwort.');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+    expect(find.text('Meine erste Antwort.'), findsOneWidget);
+
+    // Switching the partner (tone only) must not wipe the chat.
+    await tester.tap(find.text('Freundlich'));
+    await tester.pumpAndSettle();
+    expect(find.text('Meine erste Antwort.'), findsOneWidget);
+  });
+
+  testWidgets('switching mode asks before discarding an ongoing conversation',
+      (tester) async {
+    await tester.pumpWidget(
+      const ProviderScope(child: MaterialApp(home: CoachScreen())),
+    );
+    await tester.pump();
+    await tester.enterText(find.byType(TextField), 'Meine erste Antwort.');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Verhandlung'));
+    await tester.pumpAndSettle();
+    expect(find.text('Gespräch verwerfen?'), findsOneWidget);
+
+    // Cancelling keeps the conversation and the mode.
+    await tester.tap(find.text('Abbrechen'));
+    await tester.pumpAndSettle();
+    expect(find.text('Meine erste Antwort.'), findsOneWidget);
+  });
 }
