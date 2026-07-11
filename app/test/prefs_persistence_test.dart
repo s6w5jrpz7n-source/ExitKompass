@@ -32,16 +32,19 @@ void main() {
     expect(await WorkbookPrefsStore.load(), {'q2': 'Antwort 2'});
   });
 
-  test('CV and job ad survive save + reload', () async {
-    ApplicationDocsController()
-      ..setCv(text: 'Mein Lebenslauf', fileName: 'cv.pdf')
-      ..setJobAd('Data Engineer gesucht');
+  test('CV and job profiles survive save + reload', () async {
+    final c = ApplicationDocsController()
+      ..setCv(text: 'Mein Lebenslauf', fileName: 'cv.pdf');
+    final id = c.addProfile(title: 'Data Engineer');
+    c.updateProfile(id, jobAdText: 'Data Engineer gesucht');
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     final loaded = await loadApplicationDocs();
     expect(loaded.cvText, 'Mein Lebenslauf');
-    expect(loaded.jobAdText, 'Data Engineer gesucht');
     expect(loaded.cvFileName, 'cv.pdf');
+    expect(loaded.profiles, hasLength(1));
+    expect(loaded.selected!.title, 'Data Engineer');
+    expect(loaded.selected!.jobAdText, 'Data Engineer gesucht');
   });
 
   test('intake choice survives save + reload', () async {

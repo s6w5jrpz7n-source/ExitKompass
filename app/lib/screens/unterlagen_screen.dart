@@ -7,9 +7,10 @@ import '../state/application_docs.dart';
 import '../util/file_pick.dart';
 import 'coach_screen.dart';
 
-/// Upload a CV (PDF/image) and paste the job ad; the AI compares them and
-/// gives concrete tips. The same documents can then be carried into the
-/// interview simulation as context. Clearly framed as practice, not advice.
+/// Upload a CV (PDF/image) once and compare it against several job ads. Each
+/// position is saved as its own profile (job ad + AI analysis) and can later
+/// be picked in the interview simulation. Clearly framed as practice, not
+/// advice.
 class UnterlagenScreen extends ConsumerStatefulWidget {
   const UnterlagenScreen({super.key});
 
@@ -21,10 +22,13 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
   static const int _maxBytes = 8 * 1024 * 1024; // 8 MB
   static const _allowedMimes = {'application/pdf', 'image/png', 'image/jpeg'};
 
+  late final TextEditingController _name;
   late final TextEditingController _jobAd;
+  final _nameFocus = FocusNode();
+  final _jobAdFocus = FocusNode();
+
   bool _extracting = false;
   bool _analyzing = false;
-  String _analysis = '';
   String? _error;
 
   CoachEngine get _engine => ref.read(coachEngineProvider);
@@ -32,15 +36,35 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
   @override
   void initState() {
     super.initState();
-    _jobAd = TextEditingController(
-      text: ref.read(applicationDocsProvider).jobAdText,
-    );
+    final docs = ref.read(applicationDocsProvider);
+    final sel = docs.selected;
+    _name = TextEditingController(text: sel?.title ?? '');
+    _jobAd = TextEditingController(text: sel?.jobAdText ?? '');
+    // Always start with at least one position to fill in.
+    if (docs.profiles.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(applicationDocsProvider.notifier).addProfile();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _name.dispose();
     _jobAd.dispose();
+    _nameFocus.dispose();
+    _jobAdFocus.dispose();
     super.dispose();
+  }
+
+  /// Reloads the text fields for a newly selected position. Skips fields the
+  /// user is currently editing so it never clobbers in-progress typing – the
+  /// iOS Safari IME breaks if the controller text is reassigned mid-edit.
+  void _syncFieldsToSelection() {
+    final sel = ref.read(applicationDocsProvider).selected;
+    if (!_nameFocus.hasFocus) _name.text = sel?.title ?? '';
+    if (!_jobAdFocus.hasFocus) _jobAd.text = sel?.jobAdText ?? '';
   }
 
   Future<void> _pickCv() async {
@@ -90,13 +114,42 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
     };
   }
 
-  Future<void> _analyze() async {
+  void _addProfile() {
+    _nameFocus.unfocus();
+    _jobAdFocus.unfocus();
+    ref.read(applicationDocsProvider.notifier).addProfile();
+  }
+
+  Future<void> _deleteSelected(JobProfile profile) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Stelle löschen?'),
+        content: Text(
+            '„${profile.title}“ und die dazu gespeicherte Analyse werden '
+            'entfernt.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Abbrechen'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Löschen'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    _nameFocus.unfocus();
+    _jobAdFocus.unfocus();
+    ref.read(applicationDocsProvider.notifier).deleteProfile(profile.id);
+  }
+
+  Future<void> _analyze(JobProfile profile) async {
     final docs = ref.read(applicationDocsProvider);
-    if (!docs.isReady || _analyzing) return;
-    setState(() {
-      _analyzing = true;
-      _analysis = '';
-    });
+    if (!docs.hasCv || !profile.hasJobAd || _analyzing) return;
+    setState(() => _analyzing = true);
     final reply = await _engine.reply(
       const [
         CoachMessage(CoachRole.user,
@@ -105,20 +158,31 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
       ],
       CoachMode.unterlagen,
       CoachPersona.neutral,
-      contextNote: buildDocsContext(docs),
+      contextNote: buildDocsContext(
+        cvText: docs.cvText,
+        jobAdText: profile.jobAdText,
+      ),
     );
     if (!mounted) return;
-    setState(() {
-      _analysis = reply;
-      _analyzing = false;
-    });
+    ref
+        .read(applicationDocsProvider.notifier)
+        .updateProfile(profile.id, analysis: reply);
+    setState(() => _analyzing = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    // Reload the fields whenever the active position changes (add / delete /
+    // pick a different one from the dropdown).
+    ref.listen<String?>(
+      applicationDocsProvider.select((d) => d.selected?.id),
+      (_, _) => _syncFieldsToSelection(),
+    );
     final docs = ref.watch(applicationDocsProvider);
+    final profile = docs.selected;
     final busy = _extracting || _analyzing;
+    final ready = docs.hasCv && (profile?.hasJobAd ?? false);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Unterlagen-Check')),
@@ -129,19 +193,55 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
               children: [
-                Text('Stellenanzeige', style: theme.textTheme.titleMedium),
+                Text('Deine Stellen', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 6),
-                TextField(
-                  controller: _jobAd,
-                  minLines: 4,
-                  maxLines: 10,
-                  onChanged: (v) =>
-                      ref.read(applicationDocsProvider.notifier).setJobAd(v),
-                  decoration: const InputDecoration(
-                    hintText: 'Text der Stellenanzeige hier einfügen …',
-                    alignLabelWithHint: true,
-                  ),
+                _ProfilePicker(
+                  docs: docs,
+                  onSelect: busy
+                      ? null
+                      : (id) {
+                          _nameFocus.unfocus();
+                          _jobAdFocus.unfocus();
+                          ref
+                              .read(applicationDocsProvider.notifier)
+                              .selectProfile(id);
+                        },
+                  onAdd: busy ? null : _addProfile,
+                  onDelete: (busy || docs.profiles.length <= 1 || profile == null)
+                      ? null
+                      : () => _deleteSelected(profile),
                 ),
+                if (profile != null) ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _name,
+                    focusNode: _nameFocus,
+                    textInputAction: TextInputAction.done,
+                    onChanged: (v) => ref
+                        .read(applicationDocsProvider.notifier)
+                        .updateProfile(profile.id, title: v),
+                    decoration: const InputDecoration(
+                      labelText: 'Bezeichnung',
+                      hintText: 'z. B. Data Engineer bei Firma X',
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text('Stellenanzeige', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _jobAd,
+                    focusNode: _jobAdFocus,
+                    minLines: 4,
+                    maxLines: 10,
+                    onChanged: (v) => ref
+                        .read(applicationDocsProvider.notifier)
+                        .updateProfile(profile.id, jobAdText: v),
+                    decoration: const InputDecoration(
+                      hintText: 'Text der Stellenanzeige hier einfügen …',
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 20),
                 Text('Lebenslauf', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 6),
@@ -158,7 +258,9 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
                 ],
                 const SizedBox(height: 20),
                 FilledButton.icon(
-                  onPressed: (docs.isReady && !busy) ? _analyze : null,
+                  onPressed: (ready && !busy && profile != null)
+                      ? () => _analyze(profile)
+                      : null,
                   icon: _analyzing
                       ? const SizedBox(
                           height: 18,
@@ -167,7 +269,7 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
                       : const Icon(Icons.auto_awesome),
                   label: Text(_analyzing ? 'Analysiere …' : 'Analysieren'),
                 ),
-                if (!docs.isReady)
+                if (!ready)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
@@ -177,20 +279,20 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
                           color: theme.colorScheme.onSurfaceVariant),
                     ),
                   ),
-                if (_analysis.isNotEmpty) ...[
+                if ((profile?.analysis ?? '').isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Card(
                     color: theme.colorScheme.surfaceContainerHighest,
                     child: Padding(
                       padding: const EdgeInsets.all(14),
-                      child: SelectableText(_analysis,
+                      child: SelectableText(profile!.analysis,
                           style: theme.textTheme.bodyMedium),
                     ),
                   ),
                 ],
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
-                  onPressed: docs.isReady
+                  onPressed: ready
                       ? () => Navigator.of(context).push(
                             MaterialPageRoute<void>(
                                 builder: (_) => const CoachScreen()),
@@ -210,6 +312,68 @@ class _UnterlagenScreenState extends ConsumerState<UnterlagenScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Dropdown of saved positions plus add / delete controls.
+class _ProfilePicker extends StatelessWidget {
+  const _ProfilePicker({
+    required this.docs,
+    required this.onSelect,
+    required this.onAdd,
+    required this.onDelete,
+  });
+  final ApplicationDocs docs;
+  final ValueChanged<String>? onSelect;
+  final VoidCallback? onAdd;
+  final VoidCallback? onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              border: Border.all(color: theme.colorScheme.outline),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                isExpanded: true,
+                isDense: true,
+                value: docs.selected?.id,
+                items: [
+                  for (final p in docs.profiles)
+                    DropdownMenuItem(
+                      value: p.id,
+                      child: Text(
+                        p.title.isEmpty ? 'Ohne Titel' : p.title,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+                onChanged: onSelect == null
+                    ? null
+                    : (id) => id == null ? null : onSelect!(id),
+              ),
+            ),
+          ),
+        ),
+        IconButton(
+          tooltip: 'Neue Stelle',
+          onPressed: onAdd,
+          icon: const Icon(Icons.add),
+        ),
+        IconButton(
+          tooltip: 'Stelle löschen',
+          onPressed: onDelete,
+          icon: const Icon(Icons.delete_outline),
+        ),
+      ],
     );
   }
 }

@@ -157,13 +157,21 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   }
 
   /// The context passed to the engine for the active [mode]: the severance
-  /// figures for the negotiation, or the uploaded CV + job ad for the
-  /// interview (so the interviewer asks role-specific questions).
+  /// figures for the negotiation, or the CV + the selected position's job ad
+  /// for the interview (so the interviewer asks role-specific questions).
   String _contextFor(CoachMode mode) => switch (mode) {
         CoachMode.negotiation => _negotiationContext(),
-        CoachMode.interview => buildDocsContext(ref.read(applicationDocsProvider)),
+        CoachMode.interview => _interviewContext(),
         CoachMode.unterlagen => '',
       };
+
+  String _interviewContext() {
+    final docs = ref.read(applicationDocsProvider);
+    return buildDocsContext(
+      cvText: docs.cvText,
+      jobAdText: docs.selected?.jobAdText ?? '',
+    );
+  }
 
   Future<void> _send() async {
     final text = _controller.text.trim();
@@ -234,9 +242,12 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
           _DisclaimerBanner(aiPowered: _engine.isAiPowered),
           _ModeSelector(selected: _mode, onChanged: _changeMode),
           _PersonaSelector(selected: _persona, onChanged: _changePersona),
-          if (_mode == CoachMode.interview &&
-              ref.watch(applicationDocsProvider).isReady)
-            const _DocsActiveHint(),
+          if (_mode == CoachMode.interview)
+            _ProfileBar(
+              docs: ref.watch(applicationDocsProvider),
+              onSelect: (id) => setState(() =>
+                  ref.read(applicationDocsProvider.notifier).selectProfile(id)),
+            ),
           Expanded(
             child: ListView.builder(
               controller: _scroll,
@@ -255,27 +266,48 @@ class _CoachScreenState extends ConsumerState<CoachScreen> {
   }
 }
 
-class _DocsActiveHint extends StatelessWidget {
-  const _DocsActiveHint();
+/// In the interview: pick which saved position (profile) to be interviewed
+/// for. Hidden when there are no saved positions.
+class _ProfileBar extends StatelessWidget {
+  const _ProfileBar({required this.docs, required this.onSelect});
+  final ApplicationDocs docs;
+  final ValueChanged<String> onSelect;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (docs.profiles.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
       child: Row(
         children: [
-          Icon(Icons.description_outlined,
-              size: 16, color: theme.colorScheme.primary),
+          Icon(Icons.work_outline, size: 16, color: theme.colorScheme.primary),
           const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              'Lebenslauf & Stellenanzeige aktiv – die Fragen richten sich '
-              'nach deinen Unterlagen.',
+          Text('Stelle:',
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.primary),
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              isDense: true,
+              value: docs.selected?.id,
+              underline: const SizedBox.shrink(),
+              items: [
+                for (final p in docs.profiles)
+                  DropdownMenuItem(value: p.id, child: Text(p.title)),
+              ],
+              onChanged: (id) => id == null ? null : onSelect(id),
             ),
           ),
+          if (!docs.isReadyForCoach)
+            Tooltip(
+              message:
+                  'Lade einen Lebenslauf hoch und füge die Stellenanzeige ein '
+                  '(Unterlagen-Check), damit die Fragen dazu passen.',
+              child: Icon(Icons.info_outline,
+                  size: 16, color: theme.colorScheme.onSurfaceVariant),
+            ),
         ],
       ),
     );
