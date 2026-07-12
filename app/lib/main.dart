@@ -63,6 +63,9 @@ class ExitKompassApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: scheme,
         useMaterial3: true,
+        // Bundled font: the web (CanvasKit) build must not depend on fetching
+        // Roboto from fonts.gstatic.com, or blocked networks see a blank page.
+        fontFamily: 'DejaVuSans',
         inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
       ),
       home: const OnboardingScreen(),

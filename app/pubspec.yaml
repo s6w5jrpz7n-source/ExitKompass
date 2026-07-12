@@ -36,3 +36,13 @@ flutter:
   assets:
     - assets/fonts/DejaVuSans.ttf
     - assets/fonts/DejaVuSans-Bold.ttf
+  # Bundled UI font so text renders offline. The CanvasKit web renderer
+  # otherwise fetches Roboto from fonts.gstatic.com; when that host is blocked
+  # (content blockers, restrictive networks, iOS Lockdown Mode) no text paints
+  # and the app looks like a blank white page.
+  fonts:
+    - family: DejaVuSans
+      fonts:
+        - asset: assets/fonts/DejaVuSans.ttf
+        - asset: assets/fonts/DejaVuSans-Bold.ttf
+          weight: 700
