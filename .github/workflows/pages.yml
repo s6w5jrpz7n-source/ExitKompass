@@ -40,7 +40,10 @@ jobs:
             -t tool/preview_app.dart \
             --release \
             --base-href "/ExitKompass/" \
-            --no-web-resources-cdn
+            --no-web-resources-cdn \
+            --dart-define=COACH_PROXY_ENDPOINT=https://exitkompass.donlocky1.workers.dev
+          # Note: this is the public Worker URL the browser calls, not a secret.
+          # The Gemini API key lives only as a Cloudflare Worker secret.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/build/web

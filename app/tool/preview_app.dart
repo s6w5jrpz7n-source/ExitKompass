@@ -1,8 +1,11 @@
 // Preview entrypoint that runs the full app UI without the Drift database.
 // Persistence uses shared_preferences (IndexedDB on the web) so all inputs
 // – wizard, intake, CV/job ad and the coach conversations – survive a reload.
-// Build:
-//   flutter build web -t tool/preview_app.dart --no-web-resources-cdn
+// Build (must include the coach endpoint, or the app falls back to the
+// key-free preview coach instead of the Gemini engine):
+//   flutter build web -t tool/preview_app.dart --release \
+//     --base-href "/ExitKompass/" --no-web-resources-cdn \
+//     --dart-define=COACH_PROXY_ENDPOINT=https://exitkompass.donlocky1.workers.dev
 import 'package:exitkompass_app/coach/coach_engine.dart';
 import 'package:exitkompass_app/main.dart';
 import 'package:exitkompass_app/state/application_docs.dart';
