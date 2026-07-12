@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../state/intake.dart';
 import '../state/navigation.dart';
 import '../state/wizard.dart';
 import '../util/format.dart';
@@ -21,8 +22,10 @@ class WizardScreen extends ConsumerStatefulWidget {
 }
 
 class _WizardScreenState extends ConsumerState<WizardScreen> {
-  /// Done: show the results in the Abfindung area of the shell.
+  /// Done: mark the figures as entered (so the hub shows real numbers instead
+  /// of a prompt) and show the results in the Abfindung area of the shell.
   void _finish() {
+    ref.read(intakeProvider.notifier).complete();
     ref.read(rootTabProvider.notifier).state = RootTab.abfindung;
     final nav = Navigator.of(context);
     if (nav.canPop()) {
