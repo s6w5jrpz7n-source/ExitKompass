@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:exitkompass_app/main.dart';
+import 'package:exitkompass_app/screens/abfindung_screen.dart';
 import 'package:exitkompass_app/screens/finanzen_screen.dart';
 import 'package:exitkompass_app/screens/start_hub_screen.dart';
 import 'package:exitkompass_app/screens/wizard_screen.dart';
@@ -30,9 +31,10 @@ void main() {
     await tester.tap(find.text('Überspringen'));
     await tester.pumpAndSettle();
 
-    // Lands on the Start hub – all features visible, wizard not forced.
+    // Lands on the Start hub – the two journey cards are visible, wizard not forced.
     expect(find.byType(StartHubScreen), findsOneWidget);
-    expect(find.text('Deine Zahlen'), findsOneWidget);
+    expect(find.text('Was steht dir zu?'), findsOneWidget);
+    expect(find.text('Dein nächster Job'), findsOneWidget);
     expect(find.byType(WizardScreen), findsNothing);
   });
 
@@ -51,9 +53,11 @@ void main() {
     await tester.tap(find.text('Überspringen'));
     await tester.pumpAndSettle();
 
-    // Switch to the Finanzen tab → scenario comparison.
+    // Abfindung tab → open the scenario comparison via its row.
     await tester.tap(find.descendant(
-        of: find.byType(NavigationBar), matching: find.text('Finanzen')));
+        of: find.byType(NavigationBar), matching: find.text('Abfindung')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Netto-Szenarien & Fristen'));
     await tester.pumpAndSettle();
     expect(find.byType(FinanzenScreen), findsOneWidget);
     expect(find.text('Kündigung durch Arbeitgeber'), findsOneWidget);
@@ -75,8 +79,10 @@ void main() {
     await tester.tap(find.text('Szenarien vergleichen'));
     await tester.pumpAndSettle();
 
+    // The wizard closed and the pushed comparison was popped back to the shell,
+    // now on the Abfindung tab.
     expect(find.byType(WizardScreen), findsNothing);
-    expect(find.byType(FinanzenScreen), findsOneWidget);
+    expect(find.byType(AbfindungScreen), findsOneWidget);
   });
 
   test('default wizard data computes a full aggregate result', () {

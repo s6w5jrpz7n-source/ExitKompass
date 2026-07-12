@@ -34,8 +34,8 @@ class _WizardScreenState extends ConsumerState<WizardScreen> {
           if (_step < 3) {
             setState(() => _step++);
           } else {
-            // Done: show the results in the Finanzen area of the shell.
-            ref.read(rootTabProvider.notifier).state = RootTab.finanzen;
+            // Done: show the results in the Abfindung area of the shell.
+            ref.read(rootTabProvider.notifier).state = RootTab.abfindung;
             final nav = Navigator.of(context);
             if (nav.canPop()) {
               nav.popUntil((r) => r.isFirst);
