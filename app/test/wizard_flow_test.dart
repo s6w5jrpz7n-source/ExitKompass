@@ -28,8 +28,6 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Überspringen'));
-    await tester.pumpAndSettle();
 
     // Lands on the Start hub – the two journey cards are visible, wizard not forced.
     expect(find.byType(StartHubScreen), findsOneWidget);
@@ -49,8 +47,6 @@ void main() {
     await tester.tap(find.byType(Checkbox));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Loslegen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Überspringen'));
     await tester.pumpAndSettle();
 
     // Abfindung tab → open the scenario comparison via its row.

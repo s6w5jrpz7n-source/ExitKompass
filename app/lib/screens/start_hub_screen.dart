@@ -10,7 +10,6 @@ import '../state/wizard.dart';
 import '../util/format.dart';
 import '../widgets/ui_kit.dart';
 import 'coach_screen.dart';
-import 'intake_screen.dart';
 import 'settings_screen.dart';
 
 /// The landing dashboard: the user's situation at a glance, the two goal
@@ -34,9 +33,11 @@ class StartHubScreen extends ConsumerWidget {
     void push(Widget screen) => Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => screen));
 
-    // Abfindung status lines.
+    // Abfindung status lines. Only show real figures once the user has entered
+    // their data (via the wizard / quick-check) – otherwise the defaults would
+    // look like example numbers.
     final List<String> abfLines;
-    if (data.grossMonthEuro > 0) {
+    if (intake.done) {
       final r = data.compute();
       final best = r.bestScenario;
       abfLines = [
@@ -87,16 +88,12 @@ class StartHubScreen extends ConsumerWidget {
               accent: neutralAccent(context),
               icon: Icons.flag_outlined,
               title: data.situation.label,
-              subtitle: [
-                if (intake.goal != null) intake.goal!.short,
-                if (data.severanceGrossEuro > 0)
-                  'Angebot ${euroFromCents(data.severanceGrossEuro * 100, withDecimals: false)}',
-              ].join(' · '),
+              subtitle: data.severanceGrossEuro > 0
+                  ? 'Angebot ${euroFromCents(data.severanceGrossEuro * 100, withDecimals: false)}'
+                  : 'Deine Angaben',
               onTap: () => _goTab(ref, RootTab.abfindung),
             ),
-          ])
-        else
-          _IntakeCard(onTap: () => push(const IntakeScreen())),
+          ]),
         const SectionLabel('Woran willst du arbeiten?'),
         JourneyCard(
           accent: abf,
@@ -136,49 +133,6 @@ class StartHubScreen extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _IntakeCard extends StatelessWidget {
-  const _IntakeCard({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    return Material(
-      color: cs.primaryContainer,
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 15, 12, 15),
-          child: Row(
-            children: [
-              Icon(Icons.waving_hand_outlined, color: cs.onPrimaryContainer),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Erzähl uns kurz von deiner Situation',
-                        style: theme.textTheme.titleSmall
-                            ?.copyWith(color: cs.onPrimaryContainer)),
-                    Text('3 kurze Fragen – dann zeigen wir dir das Passende.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                            color:
-                                cs.onPrimaryContainer.withValues(alpha: 0.9))),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right, color: cs.onPrimaryContainer),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

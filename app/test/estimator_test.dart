@@ -16,8 +16,6 @@ Future<void> _openWizard(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.tap(find.text('Loslegen'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Überspringen'));
-  await tester.pumpAndSettle();
   // Open the wizard via Abfindung → "Angaben bearbeiten" so the inputs stay at
   // their defaults (the quick estimate would prefill them). It is now a single
   // scrollable form – the Angebot section (estimator, timing) is always there.

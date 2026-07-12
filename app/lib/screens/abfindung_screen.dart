@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../coach/coach_engine.dart';
+import '../state/intake.dart';
 import '../state/wizard.dart';
 import '../util/format.dart';
 import '../widgets/ui_kit.dart';
@@ -20,13 +21,14 @@ class AbfindungScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final data = ref.watch(wizardProvider);
+    final intake = ref.watch(intakeProvider);
     final accent = abfindungAccent(context);
 
     void push(Widget screen) => Navigator.of(context)
         .push(MaterialPageRoute<void>(builder: (_) => screen));
 
     final Widget hero;
-    if (data.grossMonthEuro > 0) {
+    if (intake.done) {
       final result = data.compute();
       final best = result.bestScenario;
       final bestNet = result.scenarios[best]!.cumulativeNetCents;
